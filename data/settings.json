@@ -1,0 +1,28 @@
+{
+  "theme": "dark",
+  "language": "en",
+  "view_mode": "grid",
+  "card_size": "medium",
+  "show_mini_tracker": true,
+  "auto_update_status": true,
+  "relation_checker_enabled": true,
+  "relation_checker_interval_hours": 24,
+  "cloud_sync_enabled": false,
+  "cloud_sync_endpoint": "",
+  "ai_enabled": false,
+  "ai_endpoint": "",
+  "ai_api_key": "",
+  "jikan_rate_limit": 3,
+  "poster_cache_enabled": true,
+  "background_animation": true,
+  "notifications_enabled": true,
+  "default_sort": "custom_order",
+  "default_filters": {
+    "genres": [],
+    "status": [],
+    "airing": null,
+    "weekly_airing": false
+  },
+  "last_sync": null,
+  "version": "1.0.0"
+}
