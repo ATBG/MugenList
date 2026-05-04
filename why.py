@@ -1,0 +1,435 @@
+content = """MugelList Overhaul Prompt Pack
+
+Use these prompts in sequence with your coding agent. They are written to recover the project aggressively, rebuild missing systems, and push the app toward a polished production-grade architecture.
+
+==============================
+PROMPT 1: FULL REPOSITORY AUDIT AND RECOVERY PLAN
+==============================
+
+You are working inside an existing codebase named MugelList.
+Your first task is to audit the repository completely before changing anything.
+
+Project profile:
+- Local-first anime/media manager
+- Frontend: HTML, CSS, vanilla JavaScript
+- Backend: Python-first, but you may introduce other backend languages where they clearly improve maintainability, performance, or integration
+- Target platform: Windows
+
+Rules:
+- Do not redesign the app from scratch.
+- Do not delete working logic unless it is clearly broken and replaced with a better equivalent.
+- Preserve existing filenames, import paths, API routes, and runtime behavior whenever possible.
+- Restore missing functionality using the current architecture as the source of truth.
+- Be explicit about every file you read, every dependency you infer, and every assumption you make.
+
+Phase 1 tasks:
+1. Scan the entire repository tree.
+2. Identify missing, broken, duplicated, or partially recovered files.
+3. Build a dependency graph of frontend, backend, and service modules.
+4. Detect import errors, circular dependencies, dead code, and mismatched exports.
+5. Identify which logic belongs in frontend JS, Python backend, or another backend service.
+6. Produce a concise recovery plan before editing files.
+
+Expected output:
+- Repository audit summary
+- File dependency map
+- Missing files list
+- Broken references list
+- Recovery order by priority
+- Notes on where Python should be used versus JavaScript versus any optional backend service language
+
+After the audit, wait for the next phase.
+
+==============================
+PROMPT 2: PYTHON BACKEND CORE REBUILD
+==============================
+
+Now rebuild the Python backend core of MugelList.
+
+Your mission is to restore and harden the backend layer while keeping it simple to run on Windows.
+
+Core files to restore or repair if missing:
+- scripts/backend.py
+- scripts/metadata_service.py
+- scripts/resolver_service.py
+- scripts/anikai_resolver.py
+- requirements.txt
+- vercel.json
+- MugelList.bat
+
+Backend architecture goals:
+- A unified Python backend that serves the frontend and API from one local entry point
+- No CORS pain when the app is opened normally through the launcher
+- Clean separation between API logic, metadata logic, and resolver logic
+- Fast startup and reliable Windows compatibility
+
+Required backend features:
+1. Local HTTP server on localhost:8000
+2. Static file serving for the frontend
+3. JSON API endpoints for metadata, playback, and sync tasks
+4. Concurrency for slow network tasks using Python threading or async where appropriate
+5. Retry handling, timeout handling, and clear error messages
+6. Response caching for repeated requests
+7. Config file or environment-based settings where useful
+8. Logging that is useful for debugging without being noisy
+
+Python expectations:
+- Use Python for network-heavy, scraping-heavy, and coordination-heavy logic
+- Use strong typing where reasonable
+- Keep functions modular and testable
+- Avoid giant monolithic scripts
+- Prefer readable code over clever code
+
+Optional backend language upgrades:
+- If one specific subsystem is clearly better suited for another language, isolate it behind a small service boundary instead of mixing everything together
+- Keep the integration simple enough to run locally on Windows
+- Do not introduce unnecessary complexity
+
+Output required after implementation:
+- What files were created or restored
+- What endpoints exist
+- What changed in runtime startup
+- What was moved from frontend JavaScript to Python
+- Any remaining gaps
+
+==============================
+PROMPT 3: THREE-SOURCE METADATA ENGINE
+==============================
+
+Build or restore the metadata engine for myAnimeCountdown and MugelList.
+
+This system must aggregate anime metadata from three sources:
+- Jikan / MyAnimeList
+- AniList
+- SIMKL
+
+Primary goal:
+Create a single gold-standard metadata record by reconciling the three sources intelligently.
+
+Required fields:
+- title
+- synonyms
+- status
+- season
+- year
+- poster
+- score
+- aired episodes
+- total episodes
+- next airing time
+- episode progress data
+- source confidence
+- source provenance
+
+Rules for reconciliation:
+- Do not blindly trust only one source
+- Detect disagreements between sources
+- Prefer the most complete and internally consistent field when sources disagree
+- Keep provenance so each field can be traced back to its origin
+- Provide fallback values when a field is missing
+
+Behavioral requirements:
+1. Query all three APIs where possible.
+2. Merge results into one normalized object.
+3. Build a validation layer to detect impossible or inconsistent values.
+4. Cache responses to avoid repeated API calls.
+5. Support batch sync for large libraries.
+6. Support parallel fetching for speed.
+7. Handle rate limits gracefully.
+
+Specific logic:
+- The app must support watched, aired, and announced_total episode tracking
+- The display format must remain compatible with:
+  Watched / Aired (Total)
+- The engine must stay timezone-aware for airing calculations
+- The engine must handle updates over time without corrupting old progress
+
+Implementation guidance:
+- Use Python for the metadata backend if that is already the main backend language
+- Use a secondary backend language only if it gives a clear advantage for a narrow service boundary
+- Keep the public API stable for the frontend
+
+Output required:
+- Data model definition
+- Reconciliation rules
+- API endpoints
+- Cache strategy
+- Sync strategy
+- Validation strategy
+
+==============================
+PROMPT 4: LOCAL PLAYBACK, RESOLVER, AND MEDIA DISCOVERY SYSTEM
+==============================
+
+Rebuild the playback and resolver ecosystem of MugelList.
+
+Restore or repair these modules if they exist or should exist:
+- js/services/anikaiResolver.js
+- js/services/playbackService.js
+- js/services/pythonEpisodeState.js
+- js/ui/playbackPicker.js
+- scripts/anikai_resolver.py
+- scripts/resolver_service.py
+
+Primary objective:
+Make playback feel fast, reliable, and seamless.
+
+Playback system requirements:
+1. Hybrid resolver architecture
+   - Local Python resolver first
+   - Cloud or remote fallback second
+   - Clear confidence scoring
+   - Title plus episode-aware resolution
+
+2. Local file discovery
+   - Windows folder picker integration
+   - Recursive scanning
+   - Season folder detection
+   - Episode extraction from varied filename formats
+   - Noise filtering for release tags, codecs, resolutions, CRC tags, and similar junk
+
+3. Non-episode exclusion
+   - Skip openings
+   - Skip endings
+   - Skip trailers
+   - Skip previews
+   - Skip specials unless explicitly intended
+
+4. Player integration
+   - Primary player support with a default fallback
+   - Safe path validation before launch
+   - Graceful error handling if the player is missing
+
+5. UI picker behavior
+   - Async search state
+   - Loading indicators
+   - Live refresh without page reload
+   - Better empty states and error states
+
+Engineering goals:
+- Keep resolver logic in Python if it depends on filesystem, parsing, or OS integration
+- Keep UI interaction logic in JavaScript
+- Avoid duplicating resolution logic across languages
+- Keep a single source of truth for episode detection rules
+
+Output required:
+- Resolver flow diagram in text
+- Filename parsing rules
+- Episode matching rules
+- Fallback hierarchy
+- UI state behavior
+
+==============================
+PROMPT 5: PREMIUM UI OVERHAUL
+==============================
+
+Overhaul the MugelList frontend UI while preserving the current product identity.
+
+Goal:
+Upgrade the interface from functional to polished, modern, and responsive.
+
+Design direction:
+- Dark premium theme
+- Clean spacing
+- Softer shadows
+- Better hierarchy
+- Subtle motion
+- Glassmorphism only where it improves clarity
+- Anime-themed energy without looking childish
+
+Required UI upgrades:
+1. Card system refresh
+   - Better metadata layout
+   - Stronger typography hierarchy
+   - Cleaner episode progress display
+   - Better poster image handling
+   - Better loading skeletons
+
+2. Context menu redesign
+   - Cleaner spacing
+   - Icons or visual cues
+   - Better hover and focus states
+   - Improved keyboard accessibility
+
+3. Playback picker redesign
+   - Faster visual feedback
+   - Better animations
+   - Clearer actions
+   - Improved error messaging
+
+4. Library browsing improvements
+   - Search
+   - Filter
+   - Sort
+   - Category grouping
+   - Better empty-state UX
+
+5. Micro-interactions
+   - Smooth hover transitions
+   - Small motion on state changes
+   - Loading animation consistency
+   - Toasts or inline status messages
+
+6. Responsive behavior
+   - Desktop-first but mobile-safe
+   - Grid layouts that collapse gracefully
+   - No clipped text
+   - No awkward overflow
+
+Implementation constraints:
+- Keep the current frontend stack unless there is a strong reason to introduce a framework
+- If a framework is introduced, do it only in a way that does not break the current app structure
+- Maintain compatibility with the backend API
+
+Output required:
+- UI change list
+- Components touched
+- Interaction improvements
+- Accessibility improvements
+- Any new styles or assets added
+
+==============================
+PROMPT 6: COUNTDOWN ENGINE AND LIVE STATUS SYSTEM
+==============================
+
+Rebuild the countdown and live status engine for myAnimeCountdown.
+
+Primary goals:
+- Show the next episode accurately
+- Keep airing information current
+- Update the UI automatically when data changes
+- Preserve progress history safely
+
+Required logic:
+1. Countdown calculations
+   - Next episode timing
+   - Timezone-safe handling
+   - Daylight saving safe handling
+   - Local display conversion
+
+2. Episode state model
+   - watched
+   - aired
+   - announced_total
+   - current progress
+   - next-up episode
+
+3. Live refresh behavior
+   - Automatic refresh on intervals
+   - Manual refresh option
+   - Minimal UI flicker
+   - No memory leaks from repeated timers
+
+4. Data integrity
+   - Cross-check the three metadata sources
+   - Detect stale data
+   - Prevent duplicate entries
+   - Normalize titles before lookup
+
+5. UI output
+   - Watched / Aired (Total)
+   - Clear next-airing information
+   - Clean visual priority for urgent countdowns
+
+Implementation guidance:
+- Put calculation-heavy logic in Python if the backend already owns metadata sync
+- Keep display formatting in JavaScript
+- Use a single normalized countdown model across the app
+
+Output required:
+- Countdown algorithm
+- Refresh policy
+- State model
+- UI binding points
+- Validation checks
+
+==============================
+PROMPT 7: BACKEND EXPANSION WITH OPTIONAL SERVICE ISOLATION
+==============================
+
+Evaluate whether any MugelList subsystem should be isolated into a dedicated service for better reliability or performance.
+
+You may introduce an additional backend language only if it creates a clear benefit.
+
+Possible candidates:
+- Node.js for lightweight API orchestration if existing JS glue becomes too large
+- Go for tiny high-speed local services if startup time and concurrency matter a lot
+- Rust only if a very specific parsing or performance bottleneck justifies it
+
+Rules:
+- Do not add a second backend language just for aesthetics
+- Do not fragment the codebase unnecessarily
+- Keep service boundaries simple and explicit
+- The main app must still be easy to run on Windows
+- Any extra service must have a narrow responsibility
+
+What to evaluate:
+1. Which modules are CPU-bound
+2. Which modules are I/O-bound
+3. Which modules are easiest to maintain in Python
+4. Which modules are fragile in JavaScript
+5. Whether a service split reduces bugs or increases them
+
+Output required:
+- Recommendation: keep in Python, split into another service, or leave as-is
+- Justification for each subsystem
+- If splitting, provide a minimal integration plan
+
+==============================
+PROMPT 8: HARDENING, TESTING, AND REGRESSION RECOVERY
+==============================
+
+After rebuilding the app, harden it.
+
+Tasks:
+1. Run a full dependency and import audit.
+2. Fix broken exports and import paths.
+3. Eliminate duplicate logic.
+4. Resolve circular dependencies.
+5. Add defensive error handling around API failures, missing files, and invalid state.
+6. Verify the launcher works from a clean start.
+7. Verify the app still runs after a full refresh and after a cache miss.
+8. Confirm that watched progress, episode counts, and playback links survive reloads.
+
+Testing goals:
+- Backend boots correctly
+- Static files serve correctly
+- Metadata sync completes successfully
+- Resolver works on valid and invalid inputs
+- UI renders without console errors
+- Countdown updates correctly
+- Player launch fallback works
+
+Output required:
+- Bug list fixed
+- Remaining issues
+- Files requiring manual verification
+- Suggested next improvements
+
+==============================
+BEST USAGE ORDER
+==============================
+
+Use them in this order:
+1. Prompt 1
+2. Prompt 2
+3. Prompt 3
+4. Prompt 4
+5. Prompt 5
+6. Prompt 6
+7. Prompt 7
+8. Prompt 8
+
+==============================
+EXTRA NOTE
+==============================
+
+If you want the agent to be more aggressive, add this line at the top of any prompt:
+
+Use as much Python as possible for backend-heavy tasks, scraping, parsing, syncing, caching, validation, and data normalization. Keep JavaScript focused on UI and client interaction only.
+"""
+path = "MugelList_Overhaul_Prompt_Pack.txt"
+with open(path, "w", encoding="utf-8") as f:
+    f.write(content)
+print(path)
+print("Saved", len(content.splitlines()), "lines")

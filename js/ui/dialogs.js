@@ -7,12 +7,15 @@ import { getSeasonsArray, getSelectedSeason, getEffectivePoster, getSeasonDispla
 import { showToast, statusLabel, STATUS_LABELS } from '../utils.js';
 import { navigate } from '../router.js';
 
-function openModal(html) {
+function openModal(html, centered = false) {
   const overlay = document.getElementById('modal-overlay');
   const content = document.getElementById('modal-content');
   if (!overlay || !content) return;
   content.innerHTML = html;
-  overlay.classList.remove('hidden');
+  overlay.classList.remove('hidden', 'modal-centered');
+  if (centered) {
+    overlay.classList.add('modal-centered');
+  }
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) closeModal();
   }, { once: true });
@@ -20,7 +23,13 @@ function openModal(html) {
 
 export function closeModal() {
   const overlay = document.getElementById('modal-overlay');
-  overlay?.classList.add('hidden');
+  if (overlay) {
+    overlay.classList.add('hidden');
+    // Remove centered class after animation completes
+    setTimeout(() => {
+      overlay.classList.remove('modal-centered');
+    }, 300);
+  }
 }
 
 // ---------- Edit Anime Franchise ----------
@@ -71,8 +80,8 @@ export function openEditDialog(anime) {
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" id="modal-cancel-btn">Cancel</button>
-      <button class="btn-primary" id="modal-save-btn">Save Changes</button>
+      <button class="btn btn--secondary" id="modal-cancel-btn">Cancel</button>
+      <button class="btn btn--primary" id="modal-save-btn">Save Changes</button>
     </div>
   `);
 
@@ -129,8 +138,8 @@ export function openDeleteConfirm(anime) {
       </p>
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" id="modal-cancel-btn">Cancel</button>
-      <button class="btn-secondary btn-danger" id="modal-delete-btn">Delete</button>
+      <button class="btn btn--secondary" id="modal-cancel-btn">Cancel</button>
+      <button class="btn btn--secondary btn--danger" id="modal-delete-btn">Delete</button>
     </div>
   `);
 
@@ -171,8 +180,8 @@ export function openSeasonDetail(anime, season) {
       <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px;">Overall completion: ${pct}%</div>
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" id="modal-close-btn2">Close</button>
-      <button class="btn-primary" id="modal-focus-btn">Open Full View</button>
+      <button class="btn btn--secondary" id="modal-close-btn2">Close</button>
+      <button class="btn btn--primary" id="modal-focus-btn">Open Full View</button>
     </div>
   `);
 
@@ -181,5 +190,81 @@ export function openSeasonDetail(anime, season) {
   document.getElementById('modal-focus-btn')?.addEventListener('click', () => {
     closeModal();
     navigate('focus', { rootId: anime.root_mal_id });
+  });
+}
+
+// ---------- Relation Selection ----------
+
+export function openRelationSelectionDialog(anime, candidates, onConfirm) {
+  const title = getRootDisplayTitle(anime);
+  
+  const candidateHtml = candidates.map((cand, idx) => `
+    <div class="relation-candidate" data-index="${idx}">
+      <div class="relation-candidate__poster">
+        <img src="${cand.poster || 'assets/icons/placeholder.svg'}" alt="" onerror="this.src='assets/icons/placeholder.svg'" />
+      </div>
+      <div class="relation-candidate__info">
+        <div class="relation-candidate__title">${cand.title}</div>
+        <div class="relation-candidate__meta">
+          <span class="relation-type-badge">${cand.relationType}</span>
+          ${cand.alreadyInLibrary ? '<span class="library-status-badge">In Library</span>' : ''}
+        </div>
+      </div>
+      <div class="relation-candidate__checkbox">
+        <input type="checkbox" id="cand-chk-${idx}" ${cand.prechecked && !cand.alreadyInLibrary ? 'checked' : ''} ${cand.alreadyInLibrary ? 'disabled' : ''} />
+      </div>
+    </div>
+  `).join('');
+
+  openModal(`
+    <div class="modal-header">
+      <h2 class="modal-title">Related Titles for "${title}"</h2>
+      <button class="modal-close" id="modal-close-btn" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:16px;">
+        We found the following related titles. Select which ones you want to add to this franchise:
+      </p>
+      <div class="relation-candidates-list">
+        ${candidateHtml}
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn--secondary" id="modal-cancel-btn">Skip</button>
+      <button class="btn btn--primary" id="modal-confirm-btn">Add Selected</button>
+    </div>
+  `);
+
+  document.getElementById('modal-close-btn')?.addEventListener('click', closeModal);
+  document.getElementById('modal-cancel-btn')?.addEventListener('click', () => {
+    onConfirm([]);
+    closeModal();
+  });
+
+  document.getElementById('modal-confirm-btn')?.addEventListener('click', () => {
+    const selected = [];
+    candidates.forEach((cand, idx) => {
+      const chk = document.getElementById(`cand-chk-${idx}`);
+      if (chk?.checked && !cand.alreadyInLibrary) {
+        selected.push(cand);
+      }
+    });
+    onConfirm(selected);
+    closeModal();
+  });
+
+  // Toggle checkbox on row click
+  document.querySelectorAll('.relation-candidate').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if (e.target.tagName === 'INPUT') return;
+      const chk = row.querySelector('input[type="checkbox"]');
+      if (chk && !chk.disabled) {
+        chk.checked = !chk.checked;
+      }
+    });
   });
 }

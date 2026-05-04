@@ -24,9 +24,28 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 function downloadImage(url, destPath) {
   return new Promise((resolve, reject) => {
     https.get(url, (res) => {
+      // Follow redirects
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        return downloadImage(res.headers.location, destPath).then(resolve).catch(reject);
+      }
+
       if (res.statusCode === 200) {
         const file = fs.createWriteStream(destPath);
         res.pipe(file);
+
+        // Handle file stream errors
+        file.on('error', (err) => {
+          try { file.close(); } catch (e) {}
+          fs.unlink(destPath, () => {});
+          reject(err);
+        });
+
+        res.on('error', (err) => {
+          try { file.close(); } catch (e) {}
+          fs.unlink(destPath, () => {});
+          reject(err);
+        });
+
         file.on('finish', () => {
           file.close();
           resolve();

@@ -16,9 +16,16 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 
   <!-- Styles — Premium CSS Architecture -->
+  <link rel="stylesheet" href="css/vars.css?v=1" />
+  <link rel="stylesheet" href="css/utilities.css?v=1" />
   <link rel="stylesheet" href="css/base.css?v=7" />
   <link rel="stylesheet" href="css/layout.css?v=7" />
   <link rel="stylesheet" href="css/components.css?v=7" />
+  <link rel="stylesheet" href="css/components/cards.css?v=1" />
+  <link rel="stylesheet" href="css/components/buttons.css?v=1" />
+  <link rel="stylesheet" href="css/components/modals.css?v=1" />
+  <link rel="stylesheet" href="css/components/playbackPicker.css?v=1" />
+  <link rel="stylesheet" href="css/components/toasts.css?v=1" />
   <link rel="stylesheet" href="css/styles.css?v=7" />
   <link rel="stylesheet" href="css/animations.css?v=7" />
   <link rel="stylesheet" href="css/notifications.css?v=1" />
@@ -29,7 +36,7 @@
     <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
     <!-- Error display (visible if app fails to load) -->
-    <div id="error-display" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0d0e1a; color: #ff6b6b; padding: 40px; font-family: monospace; white-space: pre-wrap; overflow: auto; z-index: 10000;">
+    <div id="error-display" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0d0e1a; color: #ff6b6b; padding: 40px; font-family: monospace; white-space: pre-wrap; overflow: auto; z-index: var(--layer-modal);">
       <h1 style="color: #ff6b6b; margin: 0 0 20px 0;">MugelList Error</h1>
       <div id="error-message"></div>
     </div>

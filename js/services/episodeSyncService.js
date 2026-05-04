@@ -15,6 +15,7 @@ import {
   resolveFranchise,
 } from './franchiseService.js';
 import { normalizeAndCommitLibrary } from './libraryStateService.js';
+import { processLiveUpdate } from './animeCardLiveUpdate.js';
 
 let _jikanSyncTimer = null;
 let _lightSyncTimer = null;
@@ -196,6 +197,16 @@ export async function runLightSyncTick() {
 
     if (changed) {
       await normalizeAndCommitLibrary(library, updatedLibrary, targetTitles.map((entry) => entry.root_mal_id), { persistMode: 'immediate' });
+      
+      // Trigger live card updates for changed anime
+      for (const updatedAnime of updatedLibrary) {
+        const originalAnime = library.find(a => a.root_mal_id === updatedAnime.root_mal_id);
+        if (originalAnime) {
+          // Process live update for card refresh
+          await processLiveUpdate(originalAnime, updatedAnime, 'anilist');
+        }
+      }
+      
       console.log(`[Sync] Light AniList sync updated ${targetTitles.length} active/franchise titles.`);
     }
   } catch (err) {

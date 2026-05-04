@@ -63,9 +63,12 @@
   /* Motion & Easing */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-premium: var(--ease-out);
   --trans-fast: 0.15s var(--ease-out);
   --trans-normal: 0.3s var(--ease-out);
   --trans-slow: 0.6s var(--ease-out);
+  --transition: var(--trans-normal);
+  --transition-fast: var(--trans-fast);
 
   /* Shadows */
   --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.2);
@@ -341,6 +344,125 @@ body {
   transform: scale(0.95);
 }
 
+/* ── Primary Add Anime Button ── */
+.top-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 16px 0 12px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, rgba(165,166,246,0.92), rgba(129,130,238,0.88));
+  color: #0b0e14;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(165,166,246,0.28), inset 0 1px 0 rgba(255,255,255,0.18);
+  transition: all var(--trans-normal);
+  position: relative;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.top-add-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.top-add-btn__label {
+  line-height: 1;
+}
+
+.top-add-btn:hover {
+  background: linear-gradient(135deg, rgba(185,186,255,1), rgba(149,150,250,0.96));
+  box-shadow: 0 4px 20px rgba(165,166,246,0.4), inset 0 1px 0 rgba(255,255,255,0.22);
+  transform: translateY(-1px);
+}
+
+.top-add-btn:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 1px 6px rgba(165,166,246,0.22);
+}
+
+.top-add-btn:focus-visible {
+  outline: 2px solid rgba(165,166,246,0.7);
+  outline-offset: 3px;
+}
+
+/* Subtle entrance pulse to draw attention (plays once) */
+@keyframes add-btn-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(165,166,246,0.45); }
+  70%  { box-shadow: 0 0 0 10px rgba(165,166,246,0); }
+  100% { box-shadow: 0 0 0 0 rgba(165,166,246,0); }
+}
+
+.top-add-btn {
+  animation: add-btn-pulse 2s ease-out 1.5s 1;
+}
+
+/* ── Mobile FAB (Floating Action Button) ── */
+.mobile-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, rgba(165,166,246,0.95), rgba(129,130,238,0.92));
+  color: #0b0e14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(165,166,246,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+  transition: all var(--trans-normal);
+  z-index: 100;
+  -webkit-tap-highlight-color: transparent;
+  display: none; /* Hidden on desktop by default */
+}
+
+.mobile-fab svg {
+  width: 24px;
+  height: 24px;
+}
+
+.mobile-fab:hover {
+  background: linear-gradient(135deg, rgba(185,186,255,1), rgba(149,150,250,0.98));
+  box-shadow: 0 6px 28px rgba(165,166,246,0.5), inset 0 1px 0 rgba(255,255,255,0.25);
+  transform: translateY(-2px) scale(1.05);
+}
+
+.mobile-fab:active {
+  transform: translateY(0) scale(0.95);
+  box-shadow: 0 2px 12px rgba(165,166,246,0.3);
+}
+
+.mobile-fab:focus-visible {
+  outline: 2px solid rgba(165,166,246,0.7);
+  outline-offset: 3px;
+}
+
+/* Show FAB only on mobile */
+@media (max-width: 768px) {
+  .mobile-fab {
+    display: flex;
+  }
+
+  /* Hide FAB when on add page to avoid redundancy */
+  body:has(.workspace-tab[data-type="add"]) .mobile-fab {
+    display: none;
+  }
+
+  /* Adjust FAB position when mini-tracker is present */
+  body:has(.mini-tracker:not(.hidden)) .mobile-fab {
+    bottom: 200px;
+  }
+}
+
 /* ============================================
    Window Tab System
    ============================================ */
@@ -523,7 +645,7 @@ body {
 /* ============================================
    Buttons & Toggles
    ============================================ */
-.btn-primary {
+.btn-primary, .btn--primary, .btn.btn--primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -540,24 +662,23 @@ body {
   box-shadow: 0 4px 12px rgba(93, 95, 239, 0.3);
   transition: all var(--trans-normal);
 }
-
-.btn-primary:hover {
+.btn-primary:hover, .btn--primary:hover, .btn.btn--primary:hover {
   background: #6b6df2;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(93, 95, 239, 0.4);
 }
 
-.btn-primary:active {
+.btn-primary:active, .btn--primary:active, .btn.btn--primary:active {
   transform: translateY(0) scale(0.96);
   box-shadow: 0 2px 8px rgba(93, 95, 239, 0.3);
 }
 
-.btn-primary svg {
+.btn-primary svg, .btn--primary svg, .btn.btn--primary svg {
   width: 18px;
   height: 18px;
 }
 
-.btn-secondary {
+.btn-secondary, .btn--secondary, .btn.btn--secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -575,14 +696,13 @@ body {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
-
-.btn-secondary:hover {
+.btn-secondary:hover, .btn--secondary:hover, .btn.btn--secondary:hover {
   background: rgba(255,255,255,0.1);
   border-color: rgba(255,255,255,0.2);
   transform: translateY(-1px);
 }
 
-.btn-secondary:active {
+.btn-secondary:active, .btn--secondary:active, .btn.btn--secondary:active {
   transform: translateY(0) scale(0.96);
 }
 
@@ -977,27 +1097,30 @@ body {
 }
 
 /* ============================================
-   Modal & Dialog System (Premium Side Panel)
+   Modal & Dialog System (Premium Side Panel + Centered Dialog)
    ============================================ */
 #modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 999;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  z-index: var(--layer-modal);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: flex-end;
   opacity: 1;
-  transition: opacity 0.3s var(--ease-premium);
+  visibility: visible;
+  transition: opacity 0.3s var(--ease-premium), visibility 0.3s;
 }
 
 #modal-overlay.hidden {
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
 }
 
+/* Side panel mode (default for dialogs) */
 #modal-content {
   background: var(--bg-secondary);
   border-left: 1px solid var(--border-soft);
@@ -1013,6 +1136,49 @@ body {
 
 #modal-overlay.hidden #modal-content {
   animation: slideOutRight 0.3s var(--ease-premium) forwards;
+}
+
+/* Centered dialog mode (for playback picker, confirmations) */
+#modal-overlay.modal-centered {
+  justify-content: center;
+  padding: 24px;
+}
+
+#modal-overlay.modal-centered #modal-content {
+  border-left: none;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  max-width: 520px;
+  height: auto;
+  max-height: calc(100vh - 48px);
+  animation: fadeInScale 0.3s var(--ease-premium);
+  box-shadow: var(--shadow-3);
+}
+
+#modal-overlay.modal-centered.hidden #modal-content {
+  animation: fadeOutScale 0.3s var(--ease-premium) forwards;
+}
+
+@keyframes fadeInScale {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOutScale {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.95);
+    opacity: 0;
+  }
 }
 
 @keyframes slideInRight {
@@ -1109,31 +1275,31 @@ body {
   transition: all var(--trans-fast);
 }
 
-.modal-footer .btn-secondary {
+.modal-footer .btn-secondary, .modal-footer .btn--secondary, .modal-footer .btn.btn--secondary {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-soft);
   color: white;
 }
 
-.modal-footer .btn-secondary:hover {
+.modal-footer .btn-secondary:hover, .modal-footer .btn--secondary:hover, .modal-footer .btn.btn--secondary:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.15);
 }
 
-.modal-footer .btn-primary {
+.modal-footer .btn-primary, .modal-footer .btn--primary, .modal-footer .btn.btn--primary {
   background: var(--accent);
   color: white;
   border: none;
   box-shadow: 0 4px 12px rgba(93, 95, 239, 0.3);
 }
 
-.modal-footer .btn-primary:hover {
+.modal-footer .btn-primary:hover, .modal-footer .btn--primary:hover, .modal-footer .btn.btn--primary:hover {
   background: #6b6df2;
   box-shadow: 0 6px 16px rgba(93, 95, 239, 0.4);
   transform: translateY(-2px);
 }
 
-.modal-footer .btn-primary:active {
+.modal-footer .btn-primary:active, .modal-footer .btn--primary:active, .modal-footer .btn.btn--primary:active {
   transform: translateY(0) scale(0.98);
 }
 
@@ -2187,12 +2353,12 @@ body {
   font-weight: 700;
 }
 
-.btn-danger {
+.btn-danger, .btn--danger, .btn.btn--danger {
   border-color: rgba(248, 113, 113, 0.2);
   color: #fca5a5;
 }
 
-.btn-danger:hover {
+.btn-danger:hover, .btn--danger:hover, .btn.btn--danger:hover {
   background: rgba(248, 113, 113, 0.12);
   border-color: rgba(248, 113, 113, 0.32);
   color: #fecaca;
@@ -2587,6 +2753,19 @@ body {
     display: none;
   }
 
+  /* ── Mobile Add Anime Button ── */
+  .top-add-btn {
+    height: 42px;
+    padding: 0 18px 0 14px;
+    font-size: 0.9rem;
+    gap: 8px;
+  }
+
+  .top-add-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
   .library-page-header__right .library-search-box {
     flex: 0 0 auto;
     width: 100%;
@@ -2616,6 +2795,57 @@ body {
     border-radius: 18px;
   }
 
+  /* ── Mobile Add Anime Page ── */
+  .add-anime-layout {
+    gap: 16px;
+  }
+
+  .add-search-panel {
+    padding: 0;
+  }
+
+  .search-results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+
+  .search-result-card {
+    padding: 8px;
+    border-radius: 14px;
+  }
+
+  .search-result-title {
+    font-size: 0.82rem;
+  }
+
+  .search-result-meta {
+    font-size: 0.68rem;
+  }
+
+  .detail-panel {
+    position: static;
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .detail-panel .btn-primary {
+    height: 48px;
+    font-size: 1rem;
+    border-radius: 14px;
+  }
+
+  /* ── Mobile FAB adjustments ── */
+  .mobile-fab {
+    bottom: 20px;
+    right: 20px;
+    width: 52px;
+    height: 52px;
+  }
+
+  body:has(.mini-tracker:not(.hidden)) .mobile-fab {
+    bottom: 210px;
+  }
+
   .mini-tracker {
     left: 16px;
     right: 16px;
@@ -2633,4 +2863,50 @@ body {
     right: 16px;
     bottom: 16px;
   }
+}
+
+
+/* --- Playback Picker Prompt 26 Additions ---
+   These styles ensure validation states and mobile compatibility
+--------------------------------------------------------- */
+.source-item.warning {
+    border-left: 4px solid var(--status-plan);
+    background: rgba(251, 191, 36, 0.05);
+}
+.match-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 4px 0;
+    font-style: italic;
+}
+.confidence {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent-light);
+    display: block;
+    margin-bottom: 4px;
+}
+.search-fallback {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 8px 16px;
+    background: var(--bg-tertiary);
+    color: white;
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    transition: background 0.2s;
+}
+.search-fallback:hover {
+    background: var(--accent-dim);
+    color: var(--accent-light);
+}
+@media (max-width: 600px) {
+    .mode-selection {
+        grid-template-columns: 1fr !important;
+    }
+    .modal-centered #modal-content {
+        width: 90% !important;
+        max-width: none !important;
+    }
 }

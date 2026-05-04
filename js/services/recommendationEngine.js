@@ -248,6 +248,7 @@ function getCachedRecommendations(expectedFingerprint) {
 
     return data;
   } catch (e) {
+    console.warn('recommendationEngine: failed to read/parse cache, ignoring it', e);
     return null;
   }
 }
@@ -260,7 +261,7 @@ function cacheRecommendations(data, fingerprint) {
       fingerprint
     }));
   } catch (e) {
-    // Silently fail if storage unavailable
+    console.warn('recommendationEngine: failed to persist cache', e);
   }
 }
 

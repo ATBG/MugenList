@@ -1,0 +1,46 @@
+/* css/components/modals.css — Modal overlay and content styles */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(2,6,23,0.6), rgba(2,6,23,0.66));
+  backdrop-filter: blur(8px) saturate(120%);
+  z-index: var(--layer-modal);
+  transition: opacity var(--dur) var(--easing), visibility var(--dur) var(--easing);
+}
+
+.modal-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.modal-overlay:not(.hidden) { opacity: 1; visibility: visible; pointer-events: auto; }
+
+.modal-content {
+  width: min(920px, calc(100% - 48px));
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow: var(--shadow-3);
+}
+
+.modal-header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.modal-title { font-size:var(--text-lg); font-weight:700; margin:0; }
+.modal-close { background: transparent; border: none; color: var(--text-secondary); cursor:pointer; padding:8px; border-radius:8px; }
+.modal-close:hover { background: rgba(255,255,255,0.02); color: var(--text-primary); }
+
+.modal-body { padding: 6px 0 12px 0; color: var(--text-secondary); }
+.modal-footer { display:flex; gap:12px; justify-content:flex-end; margin-top:8px; }
+
+/* Form controls inside modal */
+.form-group { margin-bottom:12px; }
+.form-label { display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:var(--text-secondary); }
+.form-input, .form-select { width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.03); background: rgba(255,255,255,0.01); color:var(--text-primary); }
+.form-input:focus, .form-select:focus { box-shadow: 0 0 0 4px rgba(126,231,255,0.06); outline:none; }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .modal-content { width: calc(100% - 32px); padding: 16px; }
+}

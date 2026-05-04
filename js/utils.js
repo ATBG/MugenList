@@ -84,7 +84,15 @@ export function generateId(prefix = 'id') {
 
 // ---------- Deep Clone ----------
 export function deepClone(obj) {
-  return JSON.parse(JSON.stringify(obj));
+  try {
+    if (typeof structuredClone === 'function') return structuredClone(obj);
+    return JSON.parse(JSON.stringify(obj));
+  } catch (err) {
+    console.warn('deepClone failed, returning shallow copy', err);
+    if (Array.isArray(obj)) return [...obj];
+    if (obj && typeof obj === 'object') return { ...obj };
+    return obj;
+  }
 }
 
 // ---------- Date Formatting ----------
@@ -203,7 +211,7 @@ export function libraryHash(library) {
   const str = library.map(g => `${g.id}:${g.seasons.map(s => s.watched_episodes).join(',')}`).join('|');
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash = ((hash * 32) - hash) + str.charCodeAt(i); // Replace << 5 with * 32
     hash |= 0;
   }
   return hash;

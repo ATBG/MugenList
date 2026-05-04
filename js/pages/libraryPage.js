@@ -70,7 +70,7 @@ export function render(container) {
             </div>
 
             <!-- Filters button -->
-            <button class="btn-filters" id="filters-toggle">
+            <button class="btn btn--ghost btn-filters" id="filters-toggle">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
               Filters
             </button>
@@ -88,7 +88,7 @@ export function render(container) {
 
     <!-- Tray (portal-level) -->
     <div id="tray-backdrop" class="tray-backdrop"></div>
-    <aside id="filters-panel" class="filters-tray" aria-label="Filters"></aside>
+    <aside id="filters-panel" class="filters-tray hidden" aria-label="Filters"></aside>
   `;
 
   // Set initial view mode
@@ -130,12 +130,14 @@ export function render(container) {
   const openTray = () => {
     _trayOpen = true;
     filtersTray.classList.add('open');
+    filtersTray.classList.remove('hidden');
     trayBackdrop.classList.add('open');
     filtersToggle.classList.add('active');
   };
   const closeTray = () => {
     _trayOpen = false;
     filtersTray.classList.remove('open');
+    filtersTray.classList.add('hidden');
     trayBackdrop.classList.remove('open');
     filtersToggle.classList.remove('active');
   };
@@ -150,7 +152,7 @@ export function render(container) {
   document.addEventListener('keydown', escHandler);
 
   // Init filters panel
-  import('../ui/filtersPanel.js').then(m => m.initFiltersPanel());
+  import('../ui/filtersPanel.js').then(m => m.initFiltersPanel()).catch(err => console.warn('Failed to init filtersPanel', err));
 
   // State subscriptions
   _unsubs.forEach(u => u());
@@ -269,15 +271,15 @@ function _redraw() {
           noSearch ? `Nothing matches "${filters.search}".` :
                      'Try adjusting your filters.'
         }</p>
-        ${noLib ? `<button class="empty-state-action" id="empty-add-btn">Add Anime</button>` : ''}
-        ${!noLib && !noSearch ? `<button class="empty-state-action" id="empty-clear-btn">Clear Filters</button>` : ''}
+        ${noLib ? `<button class="btn btn--primary empty-state-action" id="empty-add-btn">Add Anime</button>` : ''}
+        ${!noLib && !noSearch ? `<button class="btn btn--secondary empty-state-action" id="empty-clear-btn">Clear Filters</button>` : ''}
       </div>
     `;
     document.getElementById('empty-add-btn')?.addEventListener('click', () => {
-      import('../ui/workspaceTabs.js').then(m => m.openTab({ type: 'add', id: 'system-add', title: 'Add Anime', closable: true }));
+      import('../ui/workspaceTabs.js').then(m => m.openTab({ type: 'add', id: 'system-add', title: 'Add Anime', closable: true })).catch(err => console.warn('Failed to open add tab', err));
     });
     document.getElementById('empty-clear-btn')?.addEventListener('click', () => {
-      import('../ui/filtersPanel.js').then(m => m.clearFilters());
+      import('../ui/filtersPanel.js').then(m => m.clearFilters()).catch(err => console.warn('Failed to load filtersPanel to clear filters', err));
     });
     return;
   }

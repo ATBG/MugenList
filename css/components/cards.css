@@ -1,0 +1,94 @@
+/* css/components/cards.css — Card styles for anime cards and list rows */
+
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.03);
+  box-shadow: var(--shadow-1);
+  color: var(--text-primary);
+  position: relative;
+  z-index: var(--layer-surface);
+  isolation: isolate;
+}
+
+.card--glass {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  backdrop-filter: blur(8px) saturate(120%);
+  border: 1px solid rgba(255,255,255,0.035);
+}
+
+.card__poster { position: relative; overflow: hidden; }
+.card__image { width:100%; height:100%; display:block; object-fit:cover; transition: transform var(--dur) var(--easing); }
+.card__poster:hover .card__image { transform: scale(1.04); }
+
+.card__overlay { position:absolute; inset:0; pointer-events:none; background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.45)); }
+
+.card__status-badge { position:absolute; top:var(--space-2); left:var(--space-2); padding:6px 10px; border-radius:999px; font-size:12px; backdrop-filter: blur(6px); background: rgba(2,6,23,0.6); display:flex; gap:8px; align-items:center; }
+.card__status-badge .status-dot { width:10px; height:10px; border-radius:50%; background: var(--accent); box-shadow: 0 0 12px var(--glow); }
+
+.card__new-badge { position:absolute; top:var(--space-2); right:var(--space-2); background: linear-gradient(90deg,var(--accent-2),var(--accent)); color:#001; padding:6px 8px; border-radius:8px; font-weight:700; font-size:12px; box-shadow: 0 8px 20px rgba(155,126,255,0.08); z-index: calc(var(--layer-pop) + 5); }
+
+.card__actions { position:absolute; top:var(--space-2); right:calc(var(--space-2) + 48px); display:flex; gap:8px; opacity:0; transform: translateY(-6px); transition: opacity var(--dur) var(--easing), transform var(--dur) var(--easing); pointer-events:none; z-index: var(--layer-pop); }
+.card:hover .card__actions, .card:focus-within .card__actions { opacity:1; transform: translateY(0); pointer-events:auto; }
+.card__action-btn { background: rgba(255,255,255,0.02); border-radius:10px; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; backdrop-filter: blur(6px); border:1px solid rgba(255,255,255,0.03); cursor:pointer; transition: transform var(--dur) var(--easing), box-shadow var(--dur) var(--easing); }
+.card__action-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(2,6,23,0.6); }
+
+.card__content { padding: var(--space-3); }
+.card__title { font-family: var(--font-heading); font-size: var(--text-md); margin:0 0 8px 0; }
+.card__progress-section { margin-bottom: var(--space-2); }
+.card__progress-bar { background: rgba(255,255,255,0.02); height:8px; border-radius:999px; overflow:hidden; }
+.card__progress-fill { background: linear-gradient(90deg,var(--accent),var(--accent-2)); height:100%; transition: width var(--dur) var(--easing); }
+
+/* Episode meta (Watched / Aired / Announced) */
+.card__progress-info { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+.card__ep-meta { display:flex; gap:10px; align-items:center; }
+.card__ep-meta .ep-watched, .card__ep-meta .ep-aired, .card__ep-meta .ep-announced { font-size:12px; color:var(--text-secondary); background: rgba(255,255,255,0.02); padding:6px 8px; border-radius:8px; display:inline-flex; align-items:center; gap:8px; }
+.card__ep-meta .ep-watched strong, .card__ep-meta .ep-aired strong, .card__ep-meta .ep-announced strong { color:var(--text-primary); font-weight:700; }
+
+.card__footer { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.card__season-chip { background: rgba(255,255,255,0.02); padding:6px 10px; border-radius:999px; font-size:12px; }
+
+/* List row styles */
+.row.anime-row { padding: var(--space-2); align-items:center; gap: var(--space-2); }
+.row__poster img { width:72px; height:100px; object-fit:cover; border-radius:8px; }
+
+/* Hover glow for elevated cards */
+.card--hoverable:hover { box-shadow: var(--shadow-2); border-color: rgba(126,231,255,0.06); z-index: calc(var(--layer-surface) + 5); }
+
+/* Focus ring for keyboard users */
+.card:focus-visible { box-shadow: 0 0 0 4px rgba(126,231,255,0.08); transform: translateY(-2px); }
+
+/* Countdown overlay */
+.card__countdown { position:absolute; left:var(--space-2); right:var(--space-2); bottom:var(--space-3); padding:10px 12px; background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.6)); border-radius:10px; display:flex; align-items:center; justify-content:space-between; color:var(--text-primary); transition: opacity var(--dur) var(--easing), transform var(--dur) var(--easing); will-change: opacity, transform; z-index: calc(var(--layer-pop) - 5); opacity: 0; transform: translateY(6px); pointer-events: none; }
+.card__countdown.opacity-0 { opacity:0; transform: translateY(6px); pointer-events:none; }
+.card__countdown.opacity-100 { opacity:1; transform: translateY(0); pointer-events:auto; }
+.card__countdown .countdown-value { font-family: var(--font-mono, monospace); font-size:13px; }
+
+/* Countdown visibility helpers used by countdownManager */
+.card__countdown.countdown--visible,
+.card__countdown.countdown--mobile {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.card__countdown.countdown--hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(2,6,23,0.6);
+}
+
+/* Fallback: show countdown on hover if JS doesn't attach classes */
+.anime-card:hover .card__countdown {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* episode control buttons (+ / -) */
+.control-btn { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background: rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.03); color:var(--text-primary); cursor:pointer; font-weight:700; font-size:16px; transition: transform var(--dur) var(--easing), box-shadow var(--dur) var(--easing); }
+.control-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(2,6,23,0.6); }
+.control-btn.inc-btn { background: linear-gradient(90deg,var(--accent),var(--accent-2)); color:#031018; border:none; box-shadow: 0 8px 24px rgba(126,231,255,0.06); }
+.control-btn.dec-btn { background: transparent; color:var(--text-primary); }
+
+.card__micro-controls { display:flex; gap:8px; }

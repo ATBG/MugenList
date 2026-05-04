@@ -6,11 +6,14 @@ import {
   getRootProgress, getRootWatchStatus, normalizeStatus,
   getEffectivePoster, getSeasonDisplayTitle, getRootDisplayTitle, getSelectedSeason, getState
 } from '../state.js';
-import { incrementProgress, decrementProgress, setSelectedSeason } from '../services/animeManager.js';
+import { incrementProgress, decrementProgress, setSelectedSeason, mergeRelationSeason } from '../services/animeManager.js';
 import { navigate } from '../router.js';
-import { statusLabel, formatDurationDDHHMMSS } from '../utils.js';
-import { openEditDialog } from '../ui/dialogs.js';
+import { statusLabel, formatDurationDDHHMMSS, showToast } from '../utils.js';
+import { openEditDialog, openRelationSelectionDialog } from '../ui/dialogs.js';
+import { openPlaybackPicker } from '../ui/playbackPicker.js';
 import { buildFocusCluster } from '../services/franchiseService.js';
+import { scanForNewSeasons, scanForNewEpisodes } from '../services/relationEngine.js';
+import { refreshAnimeNow } from '../services/refreshService.js';
 
 export function render(container, params = {}) {
   const rootId = Number(params.rootId);
@@ -22,7 +25,7 @@ export function render(container, params = {}) {
       <div class="empty-state">
         <div class="empty-state-icon">🔍</div>
         <div class="empty-state-title">Anime not found</div>
-        <button class="btn-primary" onclick="navigate('library')" style="margin-top:16px;">Back to Library</button>
+        <button class="btn btn--primary" onclick="navigate('library')" style="margin-top:16px;">Back to Library</button>
       </div>
     `;
     return;
@@ -51,7 +54,7 @@ export function render(container, params = {}) {
   container.innerHTML = `
     <div style="max-width:900px">
       <!-- Back button -->
-      <button id="focus-back-btn" class="btn-secondary" style="margin-bottom:16px;">
+      <button id="focus-back-btn" class="btn btn--secondary" style="margin-bottom:16px;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
         Back to Library
       </button>
@@ -99,13 +102,15 @@ export function render(container, params = {}) {
       </div>
 
       <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
-        <button id="focus-edit-btn" class="btn-secondary">
+        <button id="focus-play-btn" class="btn btn--primary">Play</button>
+        <button id="focus-edit-btn" class="btn btn--secondary">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           Edit Details
         </button>
         ${continueAction ? `
-          <button id="focus-continue-btn" class="btn-primary">${continueAction.label}</button>
+          <button id="focus-continue-btn" class="btn btn--primary">${continueAction.label}</button>
         ` : ''}
+        <button id="focus-research-btn" class="btn btn--secondary">Refresh Data</button>
       </div>
 
       <!-- Watch Session Mode -->
@@ -124,8 +129,8 @@ export function render(container, params = {}) {
           <div class="session-timer">
             <div class="session-timer-display" id="session-timer-display">00:00:00</div>
             <div class="session-timer-actions">
-              <button class="btn-secondary" id="session-timer-toggle">Start Timer</button>
-              <button class="btn-secondary" id="session-timer-reset">Reset</button>
+              <button class="btn btn--secondary" id="session-timer-toggle">Start Timer</button>
+              <button class="btn btn--secondary" id="session-timer-reset">Reset</button>
             </div>
           </div>
         </div>
@@ -138,11 +143,16 @@ export function render(container, params = {}) {
         </div>
         <div class="focus-seasons-list" id="focus-seasons-list"></div>
       </div>
+      <div id="focus-research-summary" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 12px; text-align: center;"></div>
     </div>
   `;
 
   document.getElementById('focus-back-btn')?.addEventListener('click', () => navigate('library'));
   document.getElementById('focus-edit-btn')?.addEventListener('click', () => openEditDialog(displayAnime));
+  document.getElementById('focus-play-btn')?.addEventListener('click', () => {
+    const episode = selectedSeason?.progress ? selectedSeason.progress + 1 : 1;
+    openPlaybackPicker(selectedSeason || displayAnime, episode);
+  });
   document.getElementById('focus-continue-btn')?.addEventListener('click', async () => {
     if (!continueAction?.to) return;
     await setSelectedSeason(continueAction.to.parent_root_id, continueAction.to.mal_id);
@@ -157,6 +167,58 @@ export function render(container, params = {}) {
     refreshSession(selectedSeason.parent_root_id || displayAnime.root_mal_id);
   });
   setupSessionTimer();
+
+  // Manual re-search handler
+  async function manualRescanFocus() {
+    const btn = document.getElementById('focus-research-btn');
+    const summaryEl = document.getElementById('focus-research-summary');
+    if (btn) { btn.disabled = true; }
+    if (summaryEl) summaryEl.textContent = 'Checking for new seasons and episode updates…';
+
+    try {
+      const currentLibrary = getState('library') || [];
+      const seasonResult = await scanForNewSeasons(displayAnime, currentLibrary);
+      const episodeResult = await scanForNewEpisodes(displayAnime, currentLibrary);
+      try { await refreshAnimeNow(displayAnime.root_mal_id); } catch (e) { console.warn('refreshAnimeNow failed', e); }
+
+      const autoAdded = seasonResult.autoAdded;
+      const suggestions = seasonResult.suggestions;
+      const updatedCount = episodeResult.updatedSeasons || 0;
+
+      if (autoAdded > 0) {
+        showToast(`Auto-added ${autoAdded} new season(s)`, 'success');
+      }
+
+      if ((suggestions || []).length > 0) {
+        if (summaryEl) summaryEl.textContent = `Found ${autoAdded} auto-added and ${suggestions.length} suggested items.`;
+        openRelationSelectionDialog(displayAnime, suggestions, async (selected) => {
+          let extraAdded = 0;
+          for (const sel of selected || []) {
+            try { await mergeRelationSeason(displayAnime.root_mal_id, sel.jikanData); extraAdded += 1; } catch (e) { console.warn('Failed to add suggested', e); }
+          }
+          const totalAdded = autoAdded + extraAdded;
+          const msg = totalAdded > 0 ? `Added ${totalAdded} new season(s). Updated ${updatedCount} episode counts.` : `Updated ${updatedCount} episode counts.`;
+          showToast(msg, totalAdded > 0 ? 'success' : 'info');
+          if (summaryEl) summaryEl.textContent = msg;
+          navigate('focus', { rootId: displayAnime.root_mal_id, force: true });
+          if (btn) btn.disabled = false;
+        });
+      } else {
+        const msg = (autoAdded || updatedCount) ? `Added ${autoAdded} new season(s). Updated ${updatedCount} episode counts.` : 'Up to date — no changes found';
+        showToast(msg, (autoAdded || updatedCount) ? 'success' : 'info');
+        if (summaryEl) summaryEl.textContent = msg;
+        navigate('focus', { rootId: displayAnime.root_mal_id, force: true });
+      }
+    } catch (err) {
+      console.warn('Manual re-search failed:', err);
+      showToast('Re-search failed: ' + (err && err.message), 'error');
+      if (document.getElementById('focus-research-summary')) document.getElementById('focus-research-summary').textContent = 'Re-search failed. Try again.';
+    } finally {
+      if (document.getElementById('focus-research-btn')) document.getElementById('focus-research-btn').disabled = false;
+    }
+  }
+
+  document.getElementById('focus-research-btn')?.addEventListener('click', async () => { await manualRescanFocus(); });
 
   // Initialise Countdown logic if present
   if (isAiringAndWaiting) {

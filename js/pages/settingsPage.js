@@ -9,6 +9,7 @@ import { startRelationChecker, stopRelationChecker } from '../services/relationC
 import { startCloudSync, stopCloudSync } from '../services/cloudSync.js';
 import { startRefreshService, stopRefreshService, manualLibrarySync } from '../services/refreshService.js';
 import { getStaleCount } from '../services/refreshUtils.js';
+import { refreshLibraryRelations } from '../services/relationFinder.js';
 
 export function render(container) {
   const settings = getState('settings') || {};
@@ -110,8 +111,8 @@ export function render(container) {
               <div class="settings-row-desc">Force refresh for all metadata and countdowns</div>
             </div>
               <div style="display:flex;gap:8px;align-items:center;">
-                <button class="btn--secondary" id="refresh-stale-btn">Refresh Now</button>
-                <button class="btn--primary" id="refresh-library-btn">Refresh Library Now</button>
+                <button class="btn btn--secondary" id="refresh-stale-btn">Refresh Now</button>
+                <button class="btn btn--primary" id="refresh-library-btn">Refresh Library Now</button>
               </div>
               <div id="library-refresh-progress" style="margin-top:8px;display:none;">
                 <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;" id="library-refresh-current">Preparing…</div>
@@ -152,7 +153,7 @@ export function render(container) {
             <label class="form-label">Sync Endpoint URL</label>
             <input class="form-input" id="cloud-endpoint" placeholder="https://your-api.example.com/sync" value="${settings.cloud_sync_endpoint || ''}" />
           </div>
-          <button class="btn-secondary" id="save-cloud-btn">Save Sync Settings</button>
+          <button class="btn btn--secondary" id="save-cloud-btn">Save Sync Settings</button>
         </div>
       </div>
 
@@ -178,7 +179,7 @@ export function render(container) {
             <label class="form-label">API Key</label>
             <input class="form-input" id="ai-key" type="password" placeholder="sk-…" value="${settings.ai_api_key || ''}" />
           </div>
-          <button class="btn-secondary" id="save-ai-btn">Save AI Settings</button>
+          <button class="btn btn--secondary" id="save-ai-btn">Save AI Settings</button>
         </div>
       </div>
 
@@ -191,7 +192,7 @@ export function render(container) {
               <div class="settings-row-label">Export Library</div>
               <div class="settings-row-desc">Download a full JSON backup of your library and settings</div>
             </div>
-            <button class="btn-secondary" id="export-btn">Export JSON</button>
+            <button class="btn btn--secondary" id="export-btn">Export JSON</button>
           </div>
           <div class="settings-row">
             <div class="settings-row-info">
@@ -199,8 +200,8 @@ export function render(container) {
               <div class="settings-row-desc">Restore from a backup file</div>
             </div>
             <div style="display:flex;gap:8px;">
-              <button class="btn-secondary" id="import-merge-btn">Import (Merge)</button>
-              <button class="btn-secondary" id="import-replace-btn">Import (Replace)</button>
+              <button class="btn btn--secondary" id="import-merge-btn">Import (Merge)</button>
+              <button class="btn btn--secondary" id="import-replace-btn">Import (Replace)</button>
             </div>
           </div>
           <input type="file" id="import-file-input" accept=".json" style="display:none" />
@@ -209,7 +210,7 @@ export function render(container) {
               <div class="settings-row-label">Reset Library</div>
               <div class="settings-row-desc">Permanently delete all anime from library</div>
             </div>
-            <button class="btn-secondary btn-danger" id="reset-btn">Reset All Data</button>
+            <button class="btn btn--secondary btn--danger" id="reset-btn">Reset All Data</button>
           </div>
         </div>
       </div>
@@ -296,24 +297,22 @@ export function render(container) {
     libraryBtn.disabled = true; refreshBtn.disabled = true;
 
     try {
-      const result = await manualLibrarySync(({ completed, total, current, changed, error }) => {
-        const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-        if (bar) bar.style.width = `${pct}%`;
-        if (percentText) percentText.textContent = `${pct}%`;
-        if (currentItem) currentItem.textContent = current ? `Updating: ${current}` : '';
-        if (statusText) statusText.textContent = `Syncing (${completed}/${total})`;
-
-        // Show subtle per-item update when something actually changed
-        if (changed && current) {
-          showToast(`Updated: ${current}`, 'success', 1400);
-        }
-
-        if (error) {
-          console.warn('Sync item error', current, error);
-        }
+      // Use unified relationFinder - same logic as fetching new titles
+      const result = await refreshLibraryRelations(library, {
+        autoAdd: true,
+        includePrequels: true,
+        onProgress: ({ stage, completed, total, current, percent, added }) => {
+          if (bar) bar.style.width = `${percent}%`;
+          if (percentText) percentText.textContent = `${percent}%`;
+          if (currentItem) currentItem.textContent = current ? `Discovering: ${current}` : '';
+          if (statusText) statusText.textContent = 
+            stage === 'discovering' 
+              ? `Finding relations (${completed}/${total})`
+              : `Adding seasons (${completed}/${total}) — ${added || 0} added`;
+        },
       });
 
-      showToast(`Refresh complete — ${result.updated} updated, ${result.errors} errors`, 'success');
+      showToast(`Refresh complete — ${result.seasonsFound} seasons found, ${result.autoAdded} added`, 'success');
     } catch (err) {
       console.error('Library sync error', err);
       showToast('Sync failed', 'error');

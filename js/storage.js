@@ -94,10 +94,17 @@ export async function saveAllAnime(animeList) {
 export async function clearAllAnime() {
   try {
     const { storageQueue } = await import('./services/storageQueue.js');
-    await storageQueue.forceFlush().catch(() => {});
-    storageQueue.clear();
-  } catch {
-    // If the queue module is unavailable, continue with DB clear.
+    await storageQueue.forceFlush().catch((err) => {
+      console.warn('storageQueue.forceFlush failed, proceeding with DB clear', err);
+    });
+    try {
+      storageQueue.clear();
+    } catch (err) {
+      console.warn('storageQueue.clear failed, continuing with DB clear', err);
+    }
+  } catch (err) {
+    // If the queue module is unavailable, continue with DB clear but log it.
+    console.warn('storageQueue unavailable, continuing with DB clear', err);
   }
 
   const database = await openDB();
@@ -119,7 +126,7 @@ export function loadSettings() {
     const oldRaw = localStorage.getItem('mugellist_settings');
     if (oldRaw) return JSON.parse(oldRaw);
     return null;
-  } catch { return null; }
+  } catch (err) { console.warn('loadSettings: failed to parse settings, returning null', err); return null; }
 }
 
 export function saveSettings(settings) {

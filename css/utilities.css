@@ -1,0 +1,71 @@
+/* css/utilities.css — small utility classes used across components */
+
+/* Layout helpers */
+.u-row { display: flex; flex-direction: row; gap: var(--space-2); }
+.u-col { display: flex; flex-direction: column; gap: var(--space-2); }
+.u-center { display:flex; align-items:center; justify-content:center; }
+.u-gap-sm { gap: var(--space-1); }
+.u-gap { gap: var(--space-2); }
+.u-gap-md { gap: var(--space-3); }
+.u-gap-lg { gap: var(--space-4); }
+
+/* Flex helpers */
+.flex { display:flex; }
+.flex-1 { flex:1; }
+.justify-between { justify-content: space-between; }
+.items-center { align-items:center; }
+
+/* Grid helpers */
+.grid { display:grid; gap: var(--space-2); }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+/* Text helpers */
+.text-muted { color: var(--muted); }
+.text-secondary { color: var(--text-secondary); }
+.text-strong { color: var(--text-primary); font-weight:600; }
+
+/* Visually hidden */
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+
+/* Spacing helpers */
+.m-0 { margin:0; }
+.p-0 { padding:0; }
+.px-1 { padding-left:var(--space-1); padding-right:var(--space-1); }
+.py-1 { padding-top:var(--space-1); padding-bottom:var(--space-1); }
+
+/* Utility buttons */
+.btn { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:8px; font-weight:600; cursor:pointer; user-select:none; text-decoration:none; }
+.btn:disabled, .btn.is-disabled { opacity:0.5; pointer-events:none; }
+
+.btn--primary { background: linear-gradient(90deg, var(--accent), var(--accent-2)); color:#001; box-shadow: 0 6px 18px rgba(126,231,255,0.08); border: none; }
+.btn--ghost { background: transparent; color: var(--text-primary); border: 1px solid rgba(255,255,255,0.04); }
+.btn--danger { background: linear-gradient(90deg, var(--danger), #ff9b9b); color: #111; }
+
+/* Focus-visible helper */
+:focus { outline: none; }
+:focus-visible { box-shadow: 0 0 0 4px rgba(126,231,255,0.12); border-radius: 8px; }
+
+/* Glass utility */
+.glass { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); backdrop-filter: blur(8px) saturate(120%); border: 1px solid rgba(255,255,255,0.03); }
+
+/* Card hoverable helper */
+.card--hoverable { transition: transform var(--dur) var(--easing), box-shadow var(--dur) var(--easing), border-color var(--dur) var(--easing); }
+.card--hoverable:hover { transform: translateY(-6px); box-shadow: var(--shadow-2); border-color: rgba(126,231,255,0.06); }
+
+/* Small utilities */
+.u-hidden { display:none !important; }
+.u-rounded { border-radius: var(--radius); }
+
+/* Smooth transitions for interactive elements */
+.interactive { transition: all var(--dur) var(--easing); }
+
+/* Simple scrollbar styling */
+*::-webkit-scrollbar { height:10px; width:10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.04)); border-radius:10px; border: 2px solid transparent; }
+
+/* Reduced motion: minimize animations */
+@media (prefers-reduced-motion: reduce) {
+  .card--hoverable, .interactive { transition: none !important; transform: none !important; }
+}

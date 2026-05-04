@@ -492,7 +492,7 @@ function normalizeAnimeEntryLocal(anime) {
   };
 }
 
-async function buildRelationCluster(seedMalId, options = {}) {
+export async function buildRelationCluster(seedMalId, options = {}) {
   const nodes = new Map();
   const edges = new Map();
   const visited = new Set();
@@ -1225,7 +1225,7 @@ function loadPersistentCache() {
       _graphCache.set(Number(key), value);
     }
   } catch {
-    // ignore cache hydration failures
+    console.warn('franchiseService: failed to hydrate graph cache from localStorage; cache will be rebuilt');
   }
 }
 

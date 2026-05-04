@@ -2,8 +2,10 @@
  * addAnimePage.js — Add anime via Jikan search (v2 schema)
  */
 
-import { searchAnime, getAnimeById, getAnimeRelations } from '../services/jikanClient.js';
+import { searchAnime, getAnimeById } from '../services/jikanClient.js';
 import { addAnimeEntry, addSeasonToEntry } from '../services/animeManager.js';
+import { scanForNewSeasons } from '../services/relationEngine.js';
+import { openRelationSelectionDialog } from '../ui/dialogs.js';
 import { getState, getRootDisplayTitle } from '../state.js';
 import { debounce, showToast } from '../utils.js';
 
@@ -24,12 +26,12 @@ export function render(container) {
           <label class="form-label">Search Anime</label>
           <div class="search-bar" style="border-radius:var(--radius);max-width:100%;">
             <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input class="palette-input" id="jikan-search-input" type="text" placeholder="e.g. Attack on Titan, Naruto…" style="font-size:0.9rem;" />
+            <input class="palette-input" id="jikan-search-input" type="search" placeholder="e.g. Attack on Titan, Naruto…" style="font-size:1rem;padding:12px 14px;" autocomplete="off" aria-controls="search-results" aria-expanded="false" />
           </div>
         </div>
-        <div id="search-status" style="font-size:0.8rem;color:var(--text-muted);margin-bottom:8px;min-height:20px;"></div>
-        <div class="search-results-grid" id="search-results"></div>
-        <button class="btn-secondary" id="load-more-btn" style="margin-top:12px;display:none;width:100%;">Load More</button>
+        <div id="search-status" style="font-size:0.85rem;color:var(--text-muted);margin-bottom:10px;min-height:22px;"></div>
+        <div class="search-results-grid" id="search-results" role="listbox" aria-label="Anime search results"></div>
+        <button class="btn btn--secondary" id="load-more-btn" style="margin-top:14px;display:none;width:100%;padding:12px;">Load More</button>
       </div>
 
       <!-- Detail panel -->
@@ -47,7 +49,12 @@ export function render(container) {
   const input = document.getElementById('jikan-search-input');
   input?.addEventListener('input', debounce(async (e) => {
     const q = e.target.value.trim();
-    if (!q) { document.getElementById('search-results').innerHTML = ''; return; }
+    if (!q) { 
+        document.getElementById('search-results').innerHTML = ''; 
+        document.getElementById('search-status').textContent = '';
+        document.getElementById('load-more-btn').style.display = 'none';
+        return; 
+    }
     _searchPage = 1;
     await doSearch(q, true);
   }, 500));
@@ -103,13 +110,18 @@ function buildResultCard(anime) {
   return card;
 }
 
+function isAnimeInLibrary(malId) {
+    const library = getState('library') || [];
+    return library.some(g => Object.values(g.seasons).some(s => s.mal_id === malId));
+}
+
 async function showDetail(anime) {
   _selectedAnime = anime;
   const panel = document.getElementById('detail-panel');
   if (!panel) return;
 
-  const library = getState('library');
-  const alreadyInLibrary = library.some(g => Object.values(g.seasons).some(s => s.mal_id === anime.mal_id));
+  const library = getState('library') || [];
+  const alreadyInLibrary = isAnimeInLibrary(anime.mal_id);
 
   panel.innerHTML = `
     <div style="display:flex;gap:12px;margin-bottom:16px;">
@@ -136,9 +148,10 @@ async function showDetail(anime) {
           ${library.map(g => `<option value="${g.root_mal_id}">${getRootDisplayTitle(g)}</option>`).join('')}
         </select>
       </div>
-      ${alreadyInLibrary ? '<div style="font-size:0.8rem;color:var(--status-watching);margin-bottom:8px;">⚡ Season already in library</div>' : ''}
-      <button class="btn-primary" id="add-confirm-btn" style="width:100%;" ${alreadyInLibrary ? 'disabled' : ''}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      
+      ${alreadyInLibrary ? '<div style="font-size:0.85rem;color:var(--status-watching);margin-bottom:10px;">Season already in library</div>' : ''}
+      <button class="btn btn--primary" id="add-confirm-btn" style="width:100%;padding:12px 16px;font-size:0.95rem;" ${alreadyInLibrary ? 'disabled' : ''}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         ${alreadyInLibrary ? 'Already in Library' : 'Add to Library'}
       </button>
     </div>
@@ -151,12 +164,72 @@ async function showDetail(anime) {
 
     try {
       if (groupSel === 'new') {
-        const entry = await addAnimeEntry(anime);
-        if (entry) showToast('Franchise created!', 'success');
+        // Relation discovery logic
+        const tempAnime = {
+          root_mal_id: Number(anime.mal_id),
+          selected_season_mal_id: Number(anime.mal_id),
+          title_english: anime.title_english || anime.title,
+          title_japanese: anime.title_jp || '',
+          seasons: {},
+          franchise_id: null,
+        };
+
+        let scanResult = { autoAdded: 0, suggestions: [], relationsFound: 0 };
+        try {
+          scanResult = await scanForNewSeasons(tempAnime, getState('library') || [], { maxDepth: 1 });
+        } catch (err) {
+          console.warn('Relation discovery failed:', err);
+        }
+
+        const candidates = scanResult.suggestions.map((sug) => ({
+          mal_id: sug.mal_id,
+          title: sug.jikanData?.title || sug.jikanData?.title_english || 'Unknown',
+          poster: sug.jikanData?.poster || '',
+          relationType: sug.relationType || 'RELATED',
+          prechecked: ['SEQUEL','PREQUEL','CHILD','PARENT'].includes(sug.relationType || ''),
+          jikanData: sug.jikanData,
+          alreadyInLibrary: isAnimeInLibrary(sug.mal_id),
+        }));
+
+        if (candidates.length > 0) {
+            openRelationSelectionDialog(anime, candidates, async (selected) => {
+                try {
+                    const rootEntry = await addAnimeEntry(anime);
+                    if (rootEntry) {
+                        for (const sel of selected || []) {
+                            if (isAnimeInLibrary(sel.jikanData.mal_id)) continue;
+                            try {
+                                await addSeasonToEntry(Number(rootEntry.root_mal_id), sel.jikanData);
+                            } catch (e) {
+                                console.warn('Failed to add related season:', e);
+                            }
+                        }
+                        showToast('Franchise created with related titles!', 'success');
+                        showDetail(anime); // Refresh panel
+                    }
+                } catch (e) {
+                    showToast('Failed adding franchise: ' + e.message, 'error');
+                }
+            });
+            // Reset button if we opened a dialog
+            if (btn) { btn.textContent = 'Add to Library'; btn.disabled = false; }
+            return;
+        } else {
+            const entry = await addAnimeEntry(anime);
+            if (entry) showToast('Franchise created!', 'success');
+        }
       } else {
         await addSeasonToEntry(Number(groupSel), anime);
+        showToast('Season added to franchise!', 'success');
       }
-      if (btn) { btn.textContent = '✓ Added!'; btn.style.background = 'var(--neon-green)'; btn.style.color = '#000'; }
+      
+      if (btn) { 
+          btn.textContent = '✓ Added!'; 
+          btn.style.background = 'var(--neon-green)'; 
+          btn.style.color = '#000'; 
+          btn.disabled = true;
+      }
+      showDetail(anime); // Refresh panel
     } catch (err) {
       showToast('Failed: ' + err.message, 'error');
       if (btn) { btn.textContent = 'Add to Library'; btn.disabled = false; }

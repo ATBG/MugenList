@@ -1,10 +1,11 @@
 /**
  * relationChecker.js — Background sequel discovery (v2 schema)
+ * Delegates to the unified relationEngine for all relation logic.
  */
 
 import { getState, getSeasonsArray } from '../state.js';
-import { mergeRelationSeason, updateSeasonField } from './animeManager.js';
-import { getAnimeRelations, getAnimeById } from './jikanClient.js';
+import { updateSeasonField } from './animeManager.js';
+import { quickSeasonCheck, discoverRelatedSeasons, autoAddDiscoveredSeasons } from './relationFinder.js';
 import { showToast } from '../utils.js';
 
 let _checkerInterval = null;
@@ -33,14 +34,12 @@ async function runCheck() {
   const library = getState('library');
   if (!library || library.length === 0) return;
 
-  // Let's just check the most recently updated anime that hasn't been checked lately
-  // to avoid spamming the API limit
+  // Find a season that hasn't been checked lately
   const threeDaysAgo = Date.now() - (3 * 24 * 60 * 60 * 1000);
 
   let targetAnime = null;
   let targetSeason = null;
 
-  // Find a season that needs checking
   for (const anime of library) {
     for (const season of getSeasonsArray(anime)) {
       const lastCheck = season.last_relation_check ? new Date(season.last_relation_check).getTime() : 0;
@@ -58,27 +57,22 @@ async function runCheck() {
   const nowIso = new Date().toISOString();
 
   try {
-    const relations = await getAnimeRelations(targetSeason.mal_id);
-    // relations is a flat list of entries { mal_id, name, type, relation }
-    const interesting = relations.filter(r => ['Sequel', 'Prequel', 'Side story'].includes(r.relation));
-
-    for (const rel of interesting) {
-      if (rel.type !== 'anime') continue;
-      const sId = String(rel.mal_id);
-      if (targetAnime.seasons[sId]) continue; // already have it
-
-      const newSeasonData = await getAnimeById(rel.mal_id);
-      if (newSeasonData) {
-        await mergeRelationSeason(targetAnime.root_mal_id, newSeasonData);
-        await updateSeasonField(targetAnime.root_mal_id, targetSeason.mal_id, { last_relation_check: nowIso });
-        showToast(`Discovered related anime: ${newSeasonData.title}`, 'info');
-        return;
+    // Use the unified relationFinder — same logic as add-anime and re-search
+    const discovery = await discoverRelatedSeasons(targetAnime);
+    
+    if (discovery.all.length > 0) {
+      const added = await autoAddDiscoveredSeasons(targetAnime, discovery, { 
+        includePrequels: false // Only auto-add sequels in background
+      });
+      
+      if (added.added.length > 0) {
+        showToast(`Discovered ${added.added.length} related anime for ${targetAnime.title_english || targetAnime.title_japanese}`, 'info');
       }
     }
   } catch (err) {
     console.error('Relation check failed:', err);
   }
 
-  // mark as checked even if nothing new found
+  // Mark as checked even if nothing new found
   await updateSeasonField(targetAnime.root_mal_id, targetSeason.mal_id, { last_relation_check: nowIso });
 }

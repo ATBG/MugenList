@@ -106,19 +106,19 @@
 }
 
 /* --- Applied Animations --- */
-.anim-fade-in { animation: fadeIn 0.4s var(--ease-premium) both; }
-.anim-slide-up { animation: slideUp 0.5s var(--ease-premium) both; }
-.anim-scale-in { animation: scaleIn 0.5s var(--ease-premium) both; }
-.anim-pulse-glow { animation: glowPulse 3s var(--ease-premium) infinite; }
+.anim-fade-in { animation: fadeIn 0.4s var(--ease-out) both; }
+.anim-slide-up { animation: slideUp 0.5s var(--ease-out) both; }
+.anim-scale-in { animation: scaleIn 0.5s var(--ease-out) both; }
+.anim-pulse-glow { animation: glowPulse 3s var(--ease-out) infinite; }
 .anim-float { animation: floatAnim 4s ease-in-out infinite; }
 
 /* --- Component Specific Mappings --- */
 
 /* Page routing transitions */
-.page-enter .page-content { animation: slideUp 0.4s var(--ease-premium) both; }
+.page-enter .page-content { animation: slideUp 0.4s var(--ease-out) both; }
 
 /* Staggered card entrance */
-.anime-card { animation: scaleIn 0.5s var(--ease-premium) both; }
+.anime-card { animation: scaleIn 0.5s var(--ease-out) both; }
 .anime-card:nth-child(1)  { animation-delay: 0ms; }
 .anime-card:nth-child(2)  { animation-delay: 30ms; }
 .anime-card:nth-child(3)  { animation-delay: 60ms; }
@@ -130,18 +130,18 @@
 .anime-card:nth-child(n+9) { animation-delay: 240ms; }
 
 /* Progress bar fill on mount */
-.progress-bar-fill { animation: progressFill 0.8s var(--ease-premium) both; transition: width 0.8s var(--ease-premium); }
+.progress-bar-fill { animation: progressFill 0.8s var(--ease-out) both; transition: width 0.8s var(--ease-out); }
 
 /* Command Palette entrance */
-.command-palette-overlay:not(.hidden) .command-palette { animation: scaleInCenter 0.3s var(--ease-premium) both; }
+.command-palette-overlay:not(.hidden) .command-palette { animation: scaleInCenter 0.3s var(--ease-out) both; }
 
 /* Settings / Setup Modals */
-.modal-overlay:not(.hidden) .modal-content { animation: scaleInCenter 0.4s var(--ease-premium) both; }
+.modal-overlay:not(.hidden) .modal-content { animation: scaleInCenter 0.4s var(--ease-out) both; }
 
 /* Mini tracker pop */
 
 /* Panel slide animations */
-.filters-panel { animation: slideInLeft 0.4s var(--ease-premium) both; }
+.filters-panel, .filters-tray { animation: slideInLeft 0.4s var(--ease-out) both; }
 
 @keyframes slideInLeft {
   from { translate: -100% 0; opacity: 0; }
@@ -155,7 +155,7 @@
 
 /* Filter chip animations */
 .filter-chip {
-  transition: all var(--transition-fast);
+  transition: all var(--trans-fast);
 }
 
 .filter-chip:hover {
@@ -170,7 +170,7 @@
 
 /* Button click feedback */
 .btn {
-  transition: all var(--transition-fast);
+  transition: all var(--trans-fast);
 }
 
 .btn:active {
@@ -180,11 +180,11 @@
 /* Smooth hover elevations */
 .card,
 .row {
-  transition: all var(--transition);
+  transition: all var(--trans-normal);
 }
 
 .row:hover {
-  animation: rowElevate 0.4s var(--ease-premium) forwards;
+  animation: rowElevate 0.4s var(--ease-out) forwards;
 }
 
 @keyframes rowElevate {
@@ -195,16 +195,16 @@
     transform: translateX(4px) translateY(-2px);
   }
 }
-.mini-tracker:not(.hidden) { animation: slideUp 0.4s var(--ease-premium) both; }
+.mini-tracker:not(.hidden) { animation: slideUp 0.4s var(--ease-out) both; }
 
 /* Toasts */
 @keyframes toastIn { from { opacity: 0; translate: 0 20px; scale: 0.9; } to { opacity: 1; translate: 0 0; scale: 1; } }
 @keyframes toastOut { from { opacity: 1; translate: 0 0; scale: 1; } to { opacity: 0; translate: 0 15px; scale: 0.95; } }
-.toast { animation: toastIn 0.4s var(--ease-premium) both; }
-.toast.hiding { animation: toastOut 0.3s var(--ease-premium) forwards; }
+.toast { animation: toastIn 0.4s var(--ease-out) both; }
+.toast.hiding { animation: toastOut 0.3s var(--ease-out) forwards; }
 
 /* Rec stats staggered */
-.stat-card { animation: slideUp 0.5s var(--ease-premium) both; }
+.stat-card { animation: slideUp 0.5s var(--ease-out) both; }
 .stat-card:nth-child(1) { animation-delay: 0ms; }
 .stat-card:nth-child(2) { animation-delay: 40ms; }
 .stat-card:nth-child(3) { animation-delay: 80ms; }
@@ -220,4 +220,33 @@
 .skeleton-text { height: 16px; border-radius: 4px; margin-bottom: 8px; background: rgba(255,255,255,0.05); }
 
 /* Workspace tab shelf entries */
-.minimized-pill { animation: scaleInCenter 0.3s var(--ease-premium) both; }
+.minimized-pill { animation: scaleInCenter 0.3s var(--ease-out) both; }
+
+/* Phase 1 additions: additional micro-interactions and utilities */
+/* Rubber press for compact controls */
+.rubber-press {
+  transition: transform var(--dur-fast) var(--easing-rubber), box-shadow var(--dur-fast) var(--easing);
+  will-change: transform;
+}
+.rubber-press:active { transform: scale(0.985) translateY(1px); }
+
+/* Lightweight fade+slide utility (useful for small popovers) */
+.util-fade-slide {
+  opacity: 0; transform: translateY(8px);
+  transition: opacity var(--dur) var(--easing), transform var(--dur) var(--easing);
+}
+.util-fade-slide.show { opacity: 1; transform: translateY(0); }
+
+/* Progressive image blur-up helper */
+.img-blur-up { filter: blur(10px); opacity: 0.96; transition: filter var(--dur) var(--easing), opacity var(--dur) var(--easing); }
+.img-blur-up.loaded { filter: blur(0); opacity: 1; }
+
+/* Floating panel helper */
+.floating-panel { border-radius: var(--radius); box-shadow: var(--elev-1); background: var(--bg-secondary); }
+
+/* Focus ring utility for keyboard navigation */
+.focus-ring:focus { outline: none; box-shadow: 0 0 0 3px rgba(126,231,255,0.08); border-radius: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rubber-press, .util-fade-slide, .img-blur-up { transition: none !important; animation: none !important; }
+}

@@ -28,7 +28,7 @@
   position: fixed;
   bottom: 24px;
   right: 24px;
-  z-index: 9000;
+  z-index: var(--layer-toast);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -366,6 +366,16 @@
   .notification-toast {
     background: var(--notif-bg);
   }
+}
+
+/* Backwards-compatible container selectors used elsewhere in the app */
+.toast-container,
+#toast-container {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: var(--layer-toast);
+  pointer-events: none;
 }
 
 @media (prefers-color-scheme: light) {

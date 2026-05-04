@@ -10,15 +10,17 @@ import { initCommandPalette, toggle as togglePalette } from './ui/commandPalette
 import { initMiniTracker } from './ui/miniTracker.js';
 import { initBackground } from './ui/animations.js';
 import { registerRoute, navigate } from './router.js';
-import { startRelationChecker } from './services/relationChecker.js';
+import { refreshLibraryRelations } from './services/relationFinder.js';
 import { startCloudSync } from './services/cloudSync.js';
 import { startEpisodeSync } from './services/episodeSyncService.js';
 import { startAiringDaemon } from './services/airingDaemon.js';
 import { startRefreshService } from './services/refreshService.js';
+import { startDailySync } from './services/relationEngine.js';
 import { initNotificationSystem } from './services/notificationSystem.js';
 import { normalizeLibraryMetadata } from './services/franchiseService.js';
+import { initCountdownManager } from './services/countdownManager.js';
 
-// Pages
+// --- Pages ---
 import { render as renderLibrary } from './pages/libraryPage.js';
 import { render as renderFocus } from './pages/focusPage.js';
 import { render as renderStats } from './pages/statsPage.js';
@@ -142,12 +144,12 @@ async function init() {
       if (e.key === 'Escape') {
         const palette = document.getElementById('command-palette-overlay');
         if (!palette?.classList.contains('hidden')) {
-          import('./ui/commandPalette.js').then(m => m.close());
+          import('./ui/commandPalette.js').then(m => m.close()).catch(err => console.warn('Failed to load/close commandPalette', err));
           return;
         }
         const modal = document.getElementById('modal-overlay');
         if (!modal?.classList.contains('hidden')) {
-          import('./ui/dialogs.js').then(m => m.closeModal());
+          import('./ui/dialogs.js').then(m => m.closeModal()).catch(err => console.warn('Failed to load/close dialogs', err));
         }
       }
     });
@@ -186,6 +188,12 @@ async function init() {
     // 14. Real-time Airing & Episode Sync (Jikan + AniList)
     startEpisodeSync();
     startAiringDaemon();
+
+    // 14b. Unified daily sync — new seasons + episode detection via relationEngine
+    startDailySync();
+
+    // 14c. Initialize countdown manager for platform-aware episode countdowns
+    initCountdownManager();
 
     // 15. Navigate to library (initial route)
     navigate('library');

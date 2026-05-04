@@ -8,6 +8,7 @@ import {
 } from '../state.js';
 import { incrementProgress, decrementProgress } from '../services/animeManager.js';
 import { openEditDialog, openDeleteConfirm } from './dialogs.js';
+import { openPlaybackPicker } from './playbackPicker.js';
 import { navigate } from '../router.js';
 import { statusLabel, formatDurationDDHHMMSS } from '../utils.js';
 import { lazyImage } from './lazyMedia.js';
@@ -68,6 +69,9 @@ export function createAnimeRow(anime) {
     
     <!-- Actions -->
     <div class="row__actions">
+        <button class="card__action-btn play-btn" title="Play" aria-label="Play">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M5 3v18l15-9z"/></svg>
+        </button>
       <button class="card__action-btn focus-btn" title="Focus" aria-label="Focus view">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
       </button>
@@ -97,6 +101,11 @@ export function createAnimeRow(anime) {
 
   row.querySelector('.focus-btn')?.addEventListener('click', (e) => { e.stopPropagation(); navigate('focus', { rootId: anime.root_mal_id }); });
   row.querySelector('.edit-btn')?.addEventListener('click', (e) => { e.stopPropagation(); openEditDialog(anime); });
+  row.querySelector('.play-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const episode = activeSeason?.progress ? activeSeason.progress + 1 : 1;
+    openPlaybackPicker(activeSeason || anime, episode);
+  });
   row.querySelector('.delete-btn')?.addEventListener('click', (e) => { e.stopPropagation(); openDeleteConfirm(anime); });
 
   row.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', String(anime.root_mal_id)); row.classList.add('dragging'); });

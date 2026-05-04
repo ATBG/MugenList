@@ -1,96 +1,92 @@
 /**
- * api.js — Rate-limited fetch queue (3 req/sec)
+ * api.js — Unified API interface.
+ * Routes requests through the local Python backend to handle rate-limiting,
+ * caching, and CORS. Falls back to direct fetch if necessary (optional).
  */
 
-const RATE_LIMIT = 3;
-const INTERVAL_MS = 1000;
+// Use relative path by default to avoid CORS and origin mismatch issues
+export const BACKEND_URL = ''; 
 
-// Jikan Queue
-let queue = [];
-let running = 0;
-let lastFlush = 0;
-
-// AniList Queue (Safe limit: 1 req/sec to stay under 90/min)
-const AL_RATE_LIMIT = 1;
-const AL_INTERVAL_MS = 1000;
-let alQueue = [];
-let alRunning = 0;
-let alLastFlush = 0;
-
-function processQueue() {
-  const now = Date.now();
-  const elapsed = now - lastFlush;
-  if (elapsed >= INTERVAL_MS) { running = 0; lastFlush = now; }
-
-  while (queue.length > 0 && running < RATE_LIMIT) {
-    const { url, opts, resolve, reject, retries } = queue.shift();
-    running++;
-    _doFetch(url, opts, retries).then(resolve).catch(reject);
-  }
-
-  if (queue.length > 0) {
-    setTimeout(processQueue, INTERVAL_MS - (Date.now() - lastFlush) + 10);
+/**
+ * Standard fetch wrapper that prioritizes the local backend.
+ */
+export async function localFetch(endpoint, opts = {}) {
+  try {
+    const res = await fetch(`${BACKEND_URL}${endpoint}`, opts);
+    if (res.status === 429) {
+      // Backend should handle 429, but if it leaks through, wait and retry
+      await new Promise(r => setTimeout(r, 2000));
+      return localFetch(endpoint, opts);
+    }
+    if (!res.ok) throw new Error(`Backend HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error(`Local fetch failed for ${endpoint}:`, err);
+    throw err;
   }
 }
 
-async function _doFetch(url, opts, retries = 2) {
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      const res = await fetch(url, opts);
-      if (res.status === 429) {
-        const wait = (attempt + 1) * 1500;
-        await new Promise(r => setTimeout(r, wait));
-        continue;
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-      return await res.json();
-    } catch (err) {
-      if (attempt === retries) throw err;
-      await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
+/**
+ * apiFetch: Main entry point for metadata/general tasks.
+ * Originally for Jikan, now routes through backend.
+ */
+export async function apiFetch(url, opts = {}, priority = false) {
+  // If the URL is a Jikan URL, we can map it to our backend
+  if (url.includes('api.jikan.moe/v4/anime/')) {
+    const match = url.match(/\/anime\/(\d+)\/full/);
+    if (match) {
+      return { data: await localFetch(`/api/metadata/anime/${match[1]}`) };
+    }
+    
+    const searchMatch = url.match(/\/anime\?q=([^&]+)/);
+    if (searchMatch) {
+      const q = searchMatch[1];
+      return { data: await localFetch(`/api/metadata/search?q=${q}`) };
     }
   }
+
+  // Fallback to direct fetch for anything else (or legacy)
+  // Note: This might hit CORS if not handled by backend
+  const res = await fetch(url, opts);
+  return await res.json();
 }
 
-export function apiFetch(url, opts = {}, priority = false) {
-  return new Promise((resolve, reject) => {
-    const item = { url, opts, resolve, reject, retries: 2 };
-    if (priority) queue.unshift(item);
-    else queue.push(item);
-    processQueue();
-  });
-}
-
-function processAlQueue() {
-  const now = Date.now();
-  const elapsed = now - alLastFlush;
-  if (elapsed >= AL_INTERVAL_MS) { alRunning = 0; alLastFlush = now; }
-
-  while (alQueue.length > 0 && alRunning < AL_RATE_LIMIT) {
-    const { url, opts, resolve, reject, retries } = alQueue.shift();
-    alRunning++;
-    _doFetch(url, opts, retries).then(resolve).catch(reject);
-  }
-
-  if (alQueue.length > 0) {
-    setTimeout(processAlQueue, AL_INTERVAL_MS - (Date.now() - alLastFlush) + 10);
-  }
-}
-
-export function graphqlFetch(query, variables = {}, priority = false) {
-  return new Promise((resolve, reject) => {
-    const opts = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ query, variables })
+/**
+ * graphqlFetch: Routes AniList queries through backend airing endpoint where possible.
+ */
+export async function graphqlFetch(query, variables = {}, priority = false) {
+  // Special case: Airing status check (used by episodeSyncService)
+  if (query.includes('nextAiringEpisode') && variables.idMals && variables.idMals.length === 1) {
+    const idMal = variables.idMals[0];
+    const data = await localFetch(`/api/metadata/airing/${idMal}`);
+    // Wrap back into AniList-like structure for compatibility
+    return {
+      data: {
+        Page: {
+          media: [
+            {
+              idMal: data.idMal,
+              episodes: data.episodes,
+              status: data.status,
+              season: data.season,
+              seasonYear: data.seasonYear,
+              nextAiringEpisode: data.nextAiringEpisode
+            }
+          ]
+        }
+      }
     };
-    const item = { url: 'https://graphql.anilist.co', opts, resolve, reject, retries: 2 };
-    if (priority) alQueue.unshift(item);
-    else alQueue.push(item);
-    processAlQueue();
+  }
+
+  // Generic fallback for other GraphQL queries
+  const res = await fetch('https://graphql.anilist.co', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
   });
+  return await res.json();
 }
 
-export function clearQueue() { 
-  queue = []; 
-  alQueue = [];
+export function clearQueue() {
+  // No longer needed as backend handles concurrency
 }

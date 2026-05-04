@@ -1,0 +1,30 @@
+/* css/components/buttons.css — Button variants using design tokens */
+
+.btn { font-family: var(--font-sans); border-radius: 10px; padding: 8px 12px; display:inline-flex; align-items:center; gap:8px; cursor:pointer; }
+
+.btn--primary, .btn-primary {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: #04111a;
+  border: none;
+  box-shadow: 0 8px 24px rgba(126,231,255,0.06);
+}
+.btn--secondary, .btn-secondary {
+  background: rgba(255,255,255,0.02);
+  color: var(--text-primary);
+  border: 1px solid rgba(255,255,255,0.03);
+}
+.btn--ghost, .btn-ghost {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid rgba(255,255,255,0.04);
+}
+.btn--danger, .btn-danger {
+  background: linear-gradient(90deg, var(--danger), #ff9b9b);
+  color: #111;
+}
+
+.btn--small { padding:6px 8px; font-size:13px; }
+.btn--large { padding:12px 16px; font-size:16px; }
+
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible { box-shadow: 0 0 0 6px rgba(126,231,255,0.06); outline: none; }

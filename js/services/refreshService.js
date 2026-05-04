@@ -225,7 +225,7 @@ async function refreshAnimeEntry(anime, allowRetry = false) {
           try {
             const aniMap = await fetchFromAniList([anime]);
             aniListData = aniMap ? aniMap[seasonId] : null;
-          } catch (e) { /* skip */ }
+          } catch (e) { console.warn('AniList retry failed for', anime.root_mal_id, e); }
         }
       }
     }
