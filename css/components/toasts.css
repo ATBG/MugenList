@@ -1,0 +1,22 @@
+/* css/components/toasts.css — Small overrides and token mapping for existing notification toasts */
+
+/* Map local design tokens to notification variables for consistency */
+:root {
+  --notif-bg: rgba(11,14,20,0.85);
+  --notif-border: rgba(255,255,255,0.04);
+  --notif-text: var(--text-primary);
+  --notif-text-muted: var(--text-secondary);
+  --notif-shadow: 0 18px 40px rgba(2,6,23,0.6);
+}
+
+.notification-toasts { font-family: var(--font-sans); }
+.notification-toast { border-radius: 12px; }
+.notification-icon { font-size: 18px; }
+.notification-title { font-weight:700; }
+
+/* Slightly reduce motion using tokens */
+.notification-toast { transition: opacity var(--dur) var(--easing), transform var(--dur) var(--easing); }
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-toast { transition: none; }
+}

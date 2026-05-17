@@ -1,0 +1,252 @@
+/**
+ * MugelList — Animation Layer
+ * Smooth, performant transitions using transform and opacity only
+ */
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes slideUp {
+  0% { opacity: 0; translate: 0 20px; }
+  100% { opacity: 1; translate: 0 0; }
+}
+
+@keyframes scaleIn {
+  0% { opacity: 0; scale: 0.96; translate: 0 10px; }
+  100% { opacity: 1; scale: 1; translate: 0 0; }
+}
+
+@keyframes scaleInCenter {
+  0% { opacity: 0; scale: 0.95; }
+  100% { opacity: 1; scale: 1; }
+}
+
+@keyframes cardReveal {
+  0% { opacity: 0; translate: 0 12px; scale: 0.98; }
+  100% { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(93, 95, 239, 0.2); border-color: rgba(93, 95, 239, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(93, 95, 239, 0.5); border-color: rgba(93, 95, 239, 0.5); }
+}
+
+@keyframes morphIn {
+  0% { clip-path: inset(100% 0 0 0); transform: translateY(10px); }
+  100% { clip-path: inset(0 0 0 0); transform: translateY(0); }
+}
+
+@keyframes backgroundShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes cardShimmer {
+  0% { 
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background-position: -1000px 0;
+  }
+  100% { 
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes glassShine {
+  0% { transform: translateX(-100%) skew(-15deg); opacity: 0; }
+  20% { opacity: 0.5; }
+  100% { transform: translateX(200%) skew(-15deg); opacity: 0; }
+}
+
+@keyframes auraBreathe {
+  0%, 100% { filter: drop-shadow(0 0 8px var(--aura-color, rgba(93, 95, 239, 0.4))); }
+  50% { filter: drop-shadow(0 0 20px var(--aura-color, rgba(93, 95, 239, 0.7))); }
+}
+
+@keyframes slideInUp {
+  0% { transform: translateY(30px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideInDown {
+  0% { transform: translateY(-30px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes drift {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(10px, 10px); }
+}
+
+@keyframes progressFill {
+  0% { width: 0%; opacity: 0; }
+  10% { opacity: 1; }
+}
+
+@keyframes floatAnim {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -8px; }
+}
+
+@keyframes floatAnimSmall {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -4px; }
+}
+
+@keyframes ripple {
+  from { scale: 0; opacity: 1; }
+  to { scale: 4; opacity: 0; }
+}
+
+/* --- Applied Animations --- */
+.anim-fade-in { animation: fadeIn 0.4s var(--ease-out) both; }
+.anim-slide-up { animation: slideUp 0.5s var(--ease-out) both; }
+.anim-scale-in { animation: scaleIn 0.5s var(--ease-out) both; }
+.anim-pulse-glow { animation: glowPulse 3s var(--ease-out) infinite; }
+.anim-float { animation: floatAnim 4s ease-in-out infinite; }
+
+/* --- Component Specific Mappings --- */
+
+/* Page routing transitions */
+.page-enter .page-content { animation: slideUp 0.4s var(--ease-out) both; }
+
+/* Staggered card entrance */
+.anime-card { animation: scaleIn 0.5s var(--ease-out) both; }
+.anime-card:nth-child(1)  { animation-delay: 0ms; }
+.anime-card:nth-child(2)  { animation-delay: 30ms; }
+.anime-card:nth-child(3)  { animation-delay: 60ms; }
+.anime-card:nth-child(4)  { animation-delay: 90ms; }
+.anime-card:nth-child(5)  { animation-delay: 120ms; }
+.anime-card:nth-child(6)  { animation-delay: 150ms; }
+.anime-card:nth-child(7)  { animation-delay: 180ms; }
+.anime-card:nth-child(8)  { animation-delay: 210ms; }
+.anime-card:nth-child(n+9) { animation-delay: 240ms; }
+
+/* Progress bar fill on mount */
+.progress-bar-fill { animation: progressFill 0.8s var(--ease-out) both; transition: width 0.8s var(--ease-out); }
+
+/* Command Palette entrance */
+.command-palette-overlay:not(.hidden) .command-palette { animation: scaleInCenter 0.3s var(--ease-out) both; }
+
+/* Settings / Setup Modals */
+.modal-overlay:not(.hidden) .modal-content { animation: scaleInCenter 0.4s var(--ease-out) both; }
+
+/* Mini tracker pop */
+
+/* Panel slide animations */
+.filters-panel, .filters-tray { animation: slideInLeft 0.4s var(--ease-out) both; }
+
+@keyframes slideInLeft {
+  from { translate: -100% 0; opacity: 0; }
+  to { translate: 0 0; opacity: 1; }
+}
+
+@keyframes slideOutLeft {
+  from { translate: 0 0; opacity: 1; }
+  to { translate: -100% 0; opacity: 0; }
+}
+
+/* Filter chip animations */
+.filter-chip {
+  transition: all var(--trans-fast);
+}
+
+.filter-chip:hover {
+  animation: pulse 0.6s ease-out;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Button click feedback */
+.btn {
+  transition: all var(--trans-fast);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+/* Smooth hover elevations */
+.card,
+.row {
+  transition: all var(--trans-normal);
+}
+
+.row:hover {
+  animation: rowElevate 0.4s var(--ease-out) forwards;
+}
+
+@keyframes rowElevate {
+  from {
+    transform: translateX(0) translateY(0);
+  }
+  to {
+    transform: translateX(4px) translateY(-2px);
+  }
+}
+.mini-tracker:not(.hidden) { animation: slideUp 0.4s var(--ease-out) both; }
+
+/* Toasts */
+@keyframes toastIn { from { opacity: 0; translate: 0 20px; scale: 0.9; } to { opacity: 1; translate: 0 0; scale: 1; } }
+@keyframes toastOut { from { opacity: 1; translate: 0 0; scale: 1; } to { opacity: 0; translate: 0 15px; scale: 0.95; } }
+.toast { animation: toastIn 0.4s var(--ease-out) both; }
+.toast.hiding { animation: toastOut 0.3s var(--ease-out) forwards; }
+
+/* Rec stats staggered */
+.stat-card { animation: slideUp 0.5s var(--ease-out) both; }
+.stat-card:nth-child(1) { animation-delay: 0ms; }
+.stat-card:nth-child(2) { animation-delay: 40ms; }
+.stat-card:nth-child(3) { animation-delay: 80ms; }
+.stat-card:nth-child(4) { animation-delay: 120ms; }
+
+/* --- Micro interactions --- */
+.workspace-tab:not(.active):hover .tab-title { animation: floatAnimSmall 1.5s ease-in-out infinite; }
+
+/* Loading state skeleton shimmer via background sizing */
+.skeleton-card { background: var(--card-bg); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--card-border); opacity: 0.7; }
+.skeleton-poster { padding-top: 140%; background: linear-gradient(90deg, rgba(255,255,255,0.02) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.02) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite linear; }
+.skeleton-body { padding: var(--space-4); }
+.skeleton-text { height: 16px; border-radius: 4px; margin-bottom: 8px; background: rgba(255,255,255,0.05); }
+
+/* Workspace tab shelf entries */
+.minimized-pill { animation: scaleInCenter 0.3s var(--ease-out) both; }
+
+/* Phase 1 additions: additional micro-interactions and utilities */
+/* Rubber press for compact controls */
+.rubber-press {
+  transition: transform var(--dur-fast) var(--easing-rubber), box-shadow var(--dur-fast) var(--easing);
+  will-change: transform;
+}
+.rubber-press:active { transform: scale(0.985) translateY(1px); }
+
+/* Lightweight fade+slide utility (useful for small popovers) */
+.util-fade-slide {
+  opacity: 0; transform: translateY(8px);
+  transition: opacity var(--dur) var(--easing), transform var(--dur) var(--easing);
+}
+.util-fade-slide.show { opacity: 1; transform: translateY(0); }
+
+/* Progressive image blur-up helper */
+.img-blur-up { filter: blur(10px); opacity: 0.96; transition: filter var(--dur) var(--easing), opacity var(--dur) var(--easing); }
+.img-blur-up.loaded { filter: blur(0); opacity: 1; }
+
+/* Floating panel helper */
+.floating-panel { border-radius: var(--radius); box-shadow: var(--elev-1); background: var(--bg-secondary); }
+
+/* Focus ring utility for keyboard navigation */
+.focus-ring:focus { outline: none; box-shadow: 0 0 0 3px rgba(126,231,255,0.08); border-radius: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rubber-press, .util-fade-slide, .img-blur-up { transition: none !important; animation: none !important; }
+}

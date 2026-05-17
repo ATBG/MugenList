@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="MugelList — Your personal anime tracking system. Track, discover, and manage your anime library locally." />
+  <meta name="theme-color" content="#0d0e1a" />
+  <title>MugelList — Anime Tracker</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap"
+    rel="stylesheet" />
+
+  <!-- Chart.js for stats -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+  <!-- Styles — Premium CSS Architecture -->
+  <link rel="stylesheet" href="css/vars.css?v=1" />
+  <link rel="stylesheet" href="css/utilities.css?v=1" />
+  <link rel="stylesheet" href="css/base.css?v=7" />
+  <link rel="stylesheet" href="css/layout.css?v=7" />
+  <link rel="stylesheet" href="css/components.css?v=7" />
+  <link rel="stylesheet" href="css/components/cards.css?v=1" />
+  <link rel="stylesheet" href="css/components/buttons.css?v=1" />
+  <link rel="stylesheet" href="css/components/modals.css?v=1" />
+  <link rel="stylesheet" href="css/components/playbackPicker.css?v=1" />
+  <link rel="stylesheet" href="css/components/toasts.css?v=1" />
+  <link rel="stylesheet" href="css/components/searchDialog.css?v=1" />
+  <link rel="stylesheet" href="css/styles.css?v=7" />
+  <link rel="stylesheet" href="css/animations.css?v=7" />
+  <link rel="stylesheet" href="css/notifications.css?v=1" />
+  <link rel="shortcut icon" href="assets/icons/favicon.ico" type="image/x-icon">
+</head>
+
+<body>
+  <div id="app">
+    <!-- Animated background canvas -->
+    <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+    <!-- Error display (visible if app fails to load) -->
+    <div id="error-display"
+      style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0d0e1a; color: #ff6b6b; padding: 40px; font-family: monospace; white-space: pre-wrap; overflow: auto; z-index: var(--layer-modal);">
+      <h1 style="color: #ff6b6b; margin: 0 0 20px 0;">MugelList Error</h1>
+      <div id="error-message"></div>
+    </div>
+
+    <!-- App Shell (Dynamically rendered by mainWindow.js) -->
+    <div id="dynamic-shell-mount"></div>
+
+    <!-- Command Palette (Ctrl+K) -->
+    <div id="command-palette-overlay" class="command-palette-overlay hidden" role="dialog" aria-modal="true"
+      aria-label="Command palette">
+      <!-- Rendered by commandPalette.js -->
+    </div>
+
+    <!-- Mini Tracker (floating) -->
+    <div id="mini-tracker" class="mini-tracker hidden" role="complementary" aria-label="Mini episode tracker">
+      <!-- Rendered by miniTracker.js -->
+    </div>
+
+    <!-- Toast notifications -->
+    <div id="toast-container" class="toast-container" aria-live="assertive" aria-atomic="true"></div>
+
+    <!-- Modal overlay -->
+    <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
+      <div id="modal-content" class="modal-content">
+        <!-- Rendered by dialogs.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Global error handler -->
+  <script>
+    window.addEventListener('error', (e) => {
+      const display = document.getElementById('error-display');
+      const message = document.getElementById('error-message');
+      if (display && message) {
+        display.style.display = 'block';
+        message.textContent = `${e.filename}:${e.lineno}:${e.colno}\n\n${e.message}\n\n${e.error?.stack || ''}`;
+      }
+      console.error('Global error:', e);
+    });
+
+    window.addEventListener('unhandledrejection', (e) => {
+      const display = document.getElementById('error-display');
+      const message = document.getElementById('error-message');
+      if (display && message) {
+        display.style.display = 'block';
+        message.textContent = `Unhandled Promise Rejection:\n\n${e.reason?.message || e.reason}\n\n${e.reason?.stack || ''}`;
+      }
+      console.error('Unhandled rejection:', e);
+    });
+  </script>
+
+  <!-- App entry point -->
+  <script type="module" src="js/app.js"></script>
+</body>
+
+</html>

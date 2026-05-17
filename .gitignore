@@ -1,0 +1,11 @@
+# MugelList Ignore Rules
+__pycache__/
+*.pyc
+data/mugelist_*.db
+data/backups/
+.venv/
+.git_temp_folders/
+scratch/
+.idea/
+.vscode/
+.DS_Store

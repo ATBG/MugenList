@@ -1,0 +1,405 @@
+/* ============================================================================
+   notifications.css — Plain CSS notification toast system
+   Pure CSS with no Tailwind, clean animations, minimal motion
+   ========================================================================== */
+
+:root {
+  /* Notification colors — using CSS variables */
+  --notif-bg: rgba(11, 14, 20, 0.95);
+  --notif-border: rgba(255, 255, 255, 0.08);
+  --notif-text: rgba(255, 255, 255, 0.85);
+  --notif-text-muted: rgba(255, 255, 255, 0.55);
+  --notif-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  --notif-backdrop: blur(16px);
+
+  /* Status colors */
+  --notif-cyan: rgba(34, 211, 238, 0.85);
+  --notif-indigo: rgba(129, 140, 248, 0.85);
+  --notif-green: rgba(34, 197, 94, 0.85);
+  --notif-yellow: rgba(234, 179, 8, 0.85);
+  --notif-red: rgba(239, 68, 68, 0.85);
+}
+
+/* ============================================================================
+   Toast Container
+   ========================================================================== */
+
+.notification-toasts {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: var(--layer-toast);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 420px;
+  pointer-events: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+@media (max-width: 640px) {
+  .notification-toasts {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    max-width: none;
+  }
+}
+
+/* ============================================================================
+   Toast Base
+   ========================================================================== */
+
+.notification-toast {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--notif-bg);
+  border: 1px solid var(--notif-border);
+  border-radius: 10px;
+  backdrop-filter: var(--notif-backdrop);
+  box-shadow: var(--notif-shadow);
+  pointer-events: auto;
+  animation: notif-enter 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.notification-toast.visible {
+  animation: notif-visible 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.notification-toast:not(.visible) {
+  animation: notif-exit 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+}
+
+@keyframes notif-enter {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes notif-visible {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes notif-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+/* ============================================================================
+   Toast Icon
+   ========================================================================== */
+
+.notification-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  width: 24px;
+  height: 24px;
+  font-size: 18px;
+  flex-shrink: 0;
+  opacity: 0.9;
+  animation: icon-pulse 600ms ease-in-out;
+}
+
+@keyframes icon-pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+}
+
+/* ============================================================================
+   Toast Content
+   ========================================================================== */
+
+.notification-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--notif-text);
+  line-height: 1.4;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.notification-details {
+  font-size: 12px;
+  color: var(--notif-text-muted);
+  line-height: 1.4;
+  opacity: 0.8;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* ============================================================================
+   Toast Dismiss Button
+   ========================================================================== */
+
+.notification-dismiss-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  color: var(--notif-text-muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: all 200ms ease;
+  border-radius: 4px;
+
+  /* Keyboard focus */
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.notification-dismiss-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--notif-text);
+}
+
+.notification-dismiss-btn:active {
+  transform: scale(0.95);
+}
+
+.notification-dismiss-btn:focus-visible {
+  outline-color: rgba(129, 140, 248, 0.5);
+}
+
+/* ============================================================================
+   Toast Type Variants
+   ========================================================================== */
+
+/* New Episode — Cyan/Blue accent */
+.notification-toast-new_episode {
+  border-color: rgba(34, 211, 238, 0.2);
+}
+
+.notification-toast-new_episode .notification-icon {
+  color: var(--notif-cyan);
+  text-shadow: 0 0 12px rgba(34, 211, 238, 0.4);
+}
+
+.notification-toast-new_episode .notification-title {
+  color: rgba(34, 211, 238, 0.95);
+}
+
+/* Status Changed — Indigo accent */
+.notification-toast-status_changed {
+  border-color: rgba(129, 140, 248, 0.2);
+}
+
+.notification-toast-status_changed .notification-icon {
+  color: var(--notif-indigo);
+  text-shadow: 0 0 12px rgba(129, 140, 248, 0.4);
+}
+
+.notification-toast-status_changed .notification-title {
+  color: rgba(129, 140, 248, 0.95);
+}
+
+/* Started Airing — Green accent */
+.notification-toast-started_airing {
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.notification-toast-started_airing .notification-icon {
+  color: var(--notif-green);
+  text-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+}
+
+.notification-toast-started_airing .notification-title {
+  color: rgba(34, 197, 94, 0.95);
+}
+
+/* Metadata Updated — Indigo accent */
+.notification-toast-metadata_updated {
+  border-color: rgba(129, 140, 248, 0.2);
+}
+
+.notification-toast-metadata_updated .notification-icon {
+  color: var(--notif-indigo);
+  text-shadow: 0 0 12px rgba(129, 140, 248, 0.4);
+}
+
+/* Refresh Complete — Cyan accent */
+.notification-toast-refresh_complete {
+  border-color: rgba(34, 211, 238, 0.2);
+}
+
+.notification-toast-refresh_complete .notification-icon {
+  color: var(--notif-cyan);
+  text-shadow: 0 0 12px rgba(34, 211, 238, 0.4);
+}
+
+/* Success — Green accent */
+.notification-toast-success {
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.notification-toast-success .notification-icon {
+  color: var(--notif-green);
+  text-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+}
+
+/* Info — Cyan accent */
+.notification-toast-info {
+  border-color: rgba(34, 211, 238, 0.2);
+}
+
+.notification-toast-info .notification-icon {
+  color: var(--notif-cyan);
+  text-shadow: 0 0 12px rgba(34, 211, 238, 0.4);
+}
+
+/* Warning — Yellow accent */
+.notification-toast-warning {
+  border-color: rgba(234, 179, 8, 0.2);
+}
+
+.notification-toast-warning .notification-icon {
+  color: var(--notif-yellow);
+  text-shadow: 0 0 12px rgba(234, 179, 8, 0.4);
+}
+
+.notification-toast-warning .notification-title {
+  color: rgba(234, 179, 8, 0.95);
+}
+
+/* Error — Red accent */
+.notification-toast-error {
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.notification-toast-error .notification-icon {
+  color: var(--notif-red);
+  text-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+}
+
+.notification-toast-error .notification-title {
+  color: rgba(239, 68, 68, 0.95);
+}
+
+/* ============================================================================
+   Accessibility
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-toast,
+  .notification-toast.visible,
+  .notification-toast:not(.visible) {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .notification-toast:not(.visible) {
+    display: none;
+  }
+
+  .notification-icon {
+    animation: none;
+  }
+
+  .notification-dismiss-btn {
+    transition: none;
+  }
+}
+
+/* ============================================================================
+   Dark/Light Theme Support
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  .notification-toast {
+    background: var(--notif-bg);
+  }
+}
+
+/* Backwards-compatible container selectors used elsewhere in the app */
+.toast-container,
+#toast-container {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: var(--layer-toast);
+  pointer-events: none;
+}
+
+@media (prefers-color-scheme: light) {
+  /* Light theme adjustments if needed */
+  .notification-toast {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: rgba(0, 0, 0, 0.85);
+  }
+
+  .notification-title {
+    color: rgba(0, 0, 0, 0.85);
+  }
+
+  .notification-details {
+    color: rgba(0, 0, 0, 0.55);
+  }
+
+  .notification-dismiss-btn {
+    color: rgba(0, 0, 0, 0.55);
+  }
+
+  .notification-dismiss-btn:hover {
+    color: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.05);
+  }
+}
