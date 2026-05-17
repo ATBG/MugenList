@@ -79,28 +79,13 @@ async function init() {
     // expose minimal state helpers for UI modules that need synchronous access
     window.__mugelState = { getState, setState, patchState, subscribe };
 
-    // 3. Load library — seed from JSON if empty
+    // 3. Load library (starts completely empty/fresh for new browsers/IPs)
     let library = await getAllAnime();
     
     console.log('📂 getAllAnime() returned ' + library.length + ' items');
-    if (library.length === 0) {
-      console.log('📥 Library empty, seeding from anime_list.json...');
-      library = await seedFromJSON('./data/anime_list.json');
-      console.log('📥 seedFromJSON completed: ' + library.length + ' items');
-    }
     console.log('📚 Setting library into state with ' + library.length + ' items');
     setState('library', library);
     console.log('📚 State updated. Verifying: getState("library").length = ' + (getState('library') || []).length);
-    
-    // CRITICAL CHECK: If library is still empty, we need to know why
-    if (library.length === 0) {
-      console.error('❌ CRITICAL: Library is empty after load + seed attempt!');
-      console.error('   This usually means:');
-      console.error('   1. File was not opened from a local server (open via http://, not file://)');
-      console.error('   2. data/anime_list.json is missing or malformed');
-      console.error('   3. IndexedDB is broken/cleared');
-      console.error('   TIP: Open the file via Live Server extension or python -m http.server');
-    }
 
     // Normalize franchise/ranking metadata once at boot so renders stay pure and cached.
     if (library.length > 0) {
