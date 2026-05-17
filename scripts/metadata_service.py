@@ -118,7 +118,7 @@ class MetadataService:
     def search_jikan(self, query: str, limit: int = 25) -> List[Dict[str, Any]]:
         """Search anime via Jikan with configurable result limit."""
         data = self._request("GET", f"{JIKAN_BASE}/anime", params={
-            "q": query, "limit": min(limit, 25), "order_by": "score", "sort": "desc"
+            "q": query, "limit": min(limit, 25)
         })
         if data and "data" in data:
             return data["data"]
